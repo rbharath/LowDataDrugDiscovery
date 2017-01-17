@@ -235,15 +235,15 @@ Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong 
     \hline
     SIDER & Graph Convolution & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
-    10 pos, 10 neg & 0.551 & 0.546 & 0.660 & 0.671 & \textbf{0.752} \\
+    10+/10- & $0.535 \pm 0.036$ & $0.483 \pm 0.026$ & $0.687 \pm 0.089$ & $0.677 \pm 0.063$ & $\mathbf{0.750 \pm 0.003}$ \\
     \hline
-    5 pos, 10 neg & 0.534 & 0.541 & 0.674 & 0.671 & \textbf{0.750} \\ 
+    5+/10- & $0.533 \pm 0.030$ & $0.473 \pm 0.029$ & $0.648 \pm 0.070$ & $0.645 \pm 0.122$ & $\mathbf{0.737 \pm 0.003}$ \\ 
     \hline
-    1 pos, 10 neg & 0.537 & 0.533 & 0.542 & 0.543 & \textbf{0.602} \\ 
+    1+/10- & $0.540 \pm 0.034$ & $0.447 \pm 0.016$ & $0.544 \pm 0.056$ & $0.551 \pm 0.055$ & $\mathbf{0.583 \pm 0.014}$ \\ 
     \hline
-    1 pos, 5 neg & 0.536 & 0.535 & 0.544 & 0.539 & \textbf{0.639} \\ 
+    1+/5- & $0.529 \pm 0.028$ & $0.457 \pm 0.029$ & $0.530 \pm 0.050$ & $0.520 \pm 0.056$ & $\mathbf{0.614 \pm 0.016}$ \\ 
     \hline
-    1 pos, 1 neg & 0.504 & 0.501 & 0.506 & 0.505 & \textbf{0.623} \\ 
+    1+/1- & $0.506 \pm 0.039$ & $0.468 \pm 0.045$ & $0.510 \pm 0.016$ & $0.505 \pm 0.032$ & $\mathbf{0.642 \pm 0.068}$ \\ 
     \hline
     \end{tabular}
     \caption{Accuracies of models on held-out tasks for SIDER. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets}
@@ -284,14 +284,14 @@ Results are in Table~\ref{tab:transfer}. None of our models achieve any predicti
 
 \begin{table}
     \centering
-    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \begin{tabular}{ |c|c|c|c| } 
     \hline
-    SIDER from Tox21 & Graph Convolution & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
+    SIDER from Tox21 & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
-    10 pos, 10 neg & .551 & .546 & 0.504 & 0.510 & .509 \\
+    10+/10- & $0.511 \pm 0.031$ & $0.509 \pm 0.014$ & $0.509 \pm 0.012$ \\
     \hline
     \end{tabular}
-    \caption{Accuracies of models trained on Tox21 and evaluated on SIDER. Random forest numbers copied over from SIDER table for comparative purposes. Numbers reported are median on SIDER tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models trained on Tox21 and evaluated on all SIDER. Numbers reported are median on SIDER tasks. Numbers for each task are averaged for 20 random choices of support sets}
     \label{tab:transfer}
 \end{table}
 
@@ -494,21 +494,60 @@ Results for each held-out assay in SIDER collection are reported in Tables
     \hline
     C.D & RF (100 trees) & Graph Conv & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
-    10+/10- & $0.527 \pm 0.034$ & $0.533 \pm 0.026$ & $0.676 \pm 0.077$ & $0.652 \pm 0.091$ & $\mathbf{0.741 \pm 0.003}$ \\
+    10+/10- & $0.552 \pm 0.036$ & $0.456 \pm 0.038$ & $0.687 \pm 0.089$ & $0.677 \pm 0.063$ & $\mathbf{0.750 \pm 0.003}$ \\
     \hline
-    5+/10- & $0.518 \pm 0.038$ & $0.486 \pm 0.032$ & $0.648 \pm 0.070$ & $0.636 \pm 0.095$ & $\mathbf{0.726 \pm 0.003}$ \\ 
+    5+/10- & $0.560 \pm 0.041$ & $0.444 \pm 0.027$ & $0.678 \pm 0.085$ & $0.654 \pm 0.094$ & $\mathbf{0.730 \pm 0.002}$ \\ 
     \hline
-    1+/10- & $0.524 \pm 0.021$ & $0.456 \pm 0.018$ & $0.547 \pm 0.037$ & $0.525 \pm 0.525$ & $\mathbf{0.578 \pm 0.009}$ \\ 
+    1+/10- & $0.540 \pm 0.029$ & $0.422 \pm 0.035$ & $0.544 \pm 0.056$ & $0.550 \pm 0.068$ & $\mathbf{0.572 \pm 0.018}$ \\ 
     \hline
-    1+/5- & $0.526 \pm  0.031$ & $0.463 \pm 0.027$ & $0.534 \pm 0.064$ & $0.521 \pm 0.051$ & $\mathbf{0.596 \pm 0.017}$ \\ 
+    1+/5- & $0.537 \pm 0.052$ & $0.447 \pm 0.035$ & $0.536 \pm 0.052$ & $0.544 \pm 0.048$ & $\mathbf{0.617 \pm 0.019}$ \\ 
     \hline
-    1+/1- & $0.509 \pm 0.032$ & $0.519 \pm 0.035$ & $0.514 \pm 0.059$ & $0.534 \pm 0.054$ & $\mathbf{0.632 \pm 0.061}$\\ 
+    1+/1- & $0.506 \pm 0.039$ & $0.461 \pm 0.0478$ & $0.543 \pm 0.068$ & $0.535 \pm 0.077$ & $\mathbf{0.659 \pm 0.060}$\\ 
     \hline
     \end{tabular}
     \caption{Accuracies of models on ``Cardiac disorders''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}
     \label{tab:sider-cd}
 \end{table}
-
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    N.S.D & RF (100 trees) & Graph Conv & Siamese & AttnLSTM & IterRefLSTM \\ 
+    \hline
+    10+/10- & $0.681 \pm 0.077$ & $0.367 \pm 0.040$ & $0.809 \pm 0.013$ & $0.748 \pm 0.016$ & $\mathbf{0.833 \pm 0.007}$ \\
+    \hline
+    5+/10- & $0.638 \pm 0.102$ & $0.360 \pm 0.035$ & $0.791 \pm 0.022$ & $0.776 \pm 0.023$ & $\mathbf{0.839 \pm 0.005}$ \\ 
+    \hline
+    1+/10- & $0.639 \pm 0.043$ & $0.334 \pm 0.025$ & $0.631 \pm 0.115$ & $0.616 \pm 0.143$ & $\mathbf{0.665 \pm 0.021}$ \\ 
+    \hline
+    1+/5- & $0.604 \pm 0.091$ & $0.344 \pm 0.033$ & $0.617 \pm 0.107$ & $0.618 \pm 0.086$ & $\mathbf{0.711 \pm 0.052}$ \\ 
+    \hline
+    1+/1- & $0.598 \pm 0.100$ & $0.437 \pm 0.095$ & $0.515 \pm 0.121$ & $0.587 \pm 0.154$ & $\mathbf{0.778 \pm 0.006}$\\ 
+    \hline
+    \end{tabular}
+    \caption{Accuracies of models on ``Nervous system disorders''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}
+    \label{tab:sider-nsd}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    I.S.P.C & RF (100 trees) & Graph Conv & Siamese & AttnLSTM & IterRefLSTM \\ 
+    \hline
+    10+/10- & $0.535 \pm 0.036$ & $0.483 \pm 0.026$ & $0.671 \pm 0.089$ & $0.656 \pm 0.073$ & $\mathbf{0.742 \pm 0.002}$ \\
+    \hline
+    5+/10- & $0.533 \pm 0.0302$ & $0.473 \pm 0.029$ & $0.589 \pm 0.125$ & $0.628 \pm 0.090$ & $\mathbf{0.737 \pm 0.003}$ \\ 
+    \hline
+    1+/10- & $0.541 \pm 0.021$ & $0.447 \pm 0.016$ & $0.537 \pm 0.045$ & $0.559 \pm 0.055$ & $\mathbf{0.583 \pm 0.014}$ \\ 
+    \hline
+    1+/5- & $0.529 \pm 0.028$ & $0.458 \pm 0.024$ & $0.530 \pm 0.050$ & $0.506 \pm 0.027$ & $\mathbf{0.614 \pm 0.016}$ \\ 
+    \hline
+    1+/1- & $0.477 \pm 0.029$ & $0.475 \pm 0.023$ & $0.501 \pm 0.044$ & $0.498 \pm 0.0536$ & $\mathbf{0.642 \pm 0.068}$\\ 
+    \hline
+    \end{tabular}
+    \caption{Accuracies of models on ``Injury, poisoning and procedural complications''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}
+    \label{tab:sider-ispc}
+\end{table}
 
 \subsection{MUV Details}
 \subsubsection{Assay Details}
