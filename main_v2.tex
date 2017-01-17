@@ -48,7 +48,6 @@
 \affiliation{Department of Chemistry, Stanford University}
 \email{pande@stanford.edu}
 
-%\title{Residual LSTM Embeddings for One-shot Learning in Drug Discovery}
 \title{Low Data Drug Discovery with One-shot Learning}
 
 
@@ -57,8 +56,7 @@
 \maketitle
 
 \begin{abstract}
-Recent advances in machine learning have made significant contributions to drug discovery. Deep neural networks in particular have been demonstrated to provide significant boosts in predictive power when inferring the properties and activities of small-molecule compounds \cite{ma2015deep}. However, the applicability of these techniques has been limited by the requirement for large amounts of training data. In this work, we demonstrate how one-shot learning can be used to significantly lower the amounts of data required to make meaningful predictions in drug discovery applications. We introduce a new architecture, the residual LSTM embedding, that, when combined with graph convolutional neural networks, significantly improves the ability to learn meaningful distance metrics over small-molecules. We open source all models introduced in this work as part of DeepChem, an open-source framework for deep-learning in drug discovery
-TEST TEST TEST
+Recent advances in machine learning have made significant contributions to drug discovery. Deep neural networks in particular have been demonstrated to provide significant boosts in predictive power when inferring the properties and activities of small-molecule compounds \cite{ma2015deep}. However, the applicability of these techniques has been limited by the requirement for large amounts of training data. In this work, we demonstrate how one-shot learning can be used to significantly lower the amounts of data required to make meaningful predictions in drug discovery applications. We introduce a new architecture, the iterative refinement LSTM embedding, that, when combined with graph convolutional neural networks, significantly improves the ability to learn meaningful distance metrics over small-molecules. We open source all models introduced in this work as part of DeepChem, an open-source framework for deep-learning in drug discovery
 \cite{ram2016}.
 \end{abstract}
 
@@ -75,7 +73,7 @@ Other recent advances in machine learning have demonstrated that in some circums
 
 In this work, we mathematically adapt the standard one-shot learning paradigm to the the drug discovery problem. Standard one-shot learning focuses on recognizing new-classes (say recognizing a giraffe given only one example). In drug-discovery, the challenge is rather to predict the behavior of a molecule in a new experimental system.
 
-We introduce a new deep-learning architecture, the residual LSTM, a modification of the matching-networks architecture and the the residual convolutional network \cite{he2016identity}. This architecture allows for the learning of sophisticated metrics which can trade information between evidence and query molecules. We demonstrate that this architecture offers significant boosts in predictive power for a variety of problems meaningful for low-data drug discovery.
+We introduce a new deep-learning architecture, the iterative refinement LSTM, a modification of the matching-networks architecture and the the residual convolutional network \cite{he2016identity}. This architecture allows for the learning of sophisticated metrics which can trade information between evidence and query molecules. We demonstrate that this architecture offers significant boosts in predictive power for a variety of problems meaningful for low-data drug discovery.
 
 Furthermore, we take a strong open-source approach in this work. Every primitive introduced in this paper is open-sourced as part of the DeepChem \cite{ram2016} library for open-source drug discovery. In particular we provide high-quality Tensorflow \cite{abadi2016tensorflow} implementations of graph-convolutional primitives along with implementations of our one-shot learning models. The scripts used to generate all numbers in this paper are similarly open sourced, along with all datasets. Interested parties can reproduce all results claimed in this work with relative ease.
 
@@ -133,7 +131,7 @@ Both the $\text{BiLSTM}$ and $\text{attLSTM}$ are mechanisms for combining seque
 
 %take $g^\prime(S)$ to be $\left[g^\prime(x_1)^\top,\dots,g^\prime(x_m)^\top\right]^\top$
 
-\subsection{Iterative refinement using Dual Residual LSTMs}
+\subsection{Iterative refinement LSTMs}
 
 Our proposed architecture for one-shot learning preserves the context-aware design of matching networks, but resolves the order dependence in the support-embedding $g$ and the non-symmetric treatment of the query and support noted in the previous section.
 
@@ -142,7 +140,6 @@ The core idea is to use an $\text{attLSTM}$ to generate both query embedding $f$
 On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. Then, we iteratively update the embeddings $f$ and $g$ using an attention mechanism. This construction allows the embeddings to iteratively inform one another. The equations below specify the full update performed in each iteration.
 
 %(lines 1-3 below). For each example, the expected feature map under the attention mechanism is calculated, which is then fed alongside the initial embeddings into an LSTM, which generates changes to the original embedding. The process is then repeated with the new embedding for a fixed number of steps.
-% TODO(rbharath): These equations are for label-ignoring ResLSTMs. Update if we swap to label ResLSTMs/
 \begin{minipage}[b]{\linewidth}
 \centering
 \begin{tabular}{M M l}
@@ -192,7 +189,7 @@ To facilitate the use of graph-convolutional layers in future work, we open-sour
 %Furthermore, we modify the architecture in (\cite{duvenaud2015convolutional}) to more closely mirror the feedforward architectures commonly used in convolutional neural networks, such as those found in AlexNet (\cite{alex_net}) and LeNet (CITE).
 
 \subsection{Model Training}
-The objective for the Residual LSTM models is similar to that for the matching networks, with the key difference that a set of training tasks are specified instead of a set of training classes. Let $\text{Tasks}$ represent the set of training tasks. Let $S$ represent a support set, and let $B$ represent a batch of queries.
+The objective for the iterative refinement LSTM models is similar to that for the matching networks, with the key difference that a set of training tasks are specified instead of a set of training classes. Let $\text{Tasks}$ represent the set of training tasks. Let $S$ represent a support set, and let $B$ represent a batch of queries.
 \[
 \theta = \arg\max_\theta E_{T\in\text{Tasks}} \left [ E_{S\sim T,, B\sim T} \left [ \sum_{(x,y) \in B} \log P_\theta(y\mid x, S) \right ] \right ]
 \]
@@ -204,12 +201,12 @@ The Tox21 collection consists of 12 nuclear receptor assays related to human tox
 
 For a low-data benchmark, we don't use the standard train/test split for this dataset. Instead, we use the first nine assays as the training set, and the last 3 assays as the test collection. For details, see appendix.
 
-Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the Residual LSTM models showing a more robust boost in the presence of less data.
+Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data.
 \begin{table}[h]
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & ResLSTM \\ 
+    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10 pos, 10 neg & 0.537 & 0.563 & \textbf{0.831} & \textbf{0.834} & \textbf{0.840} \\
     \hline
@@ -229,7 +226,7 @@ Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong 
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & ResLSTM \\ 
+    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10 pos, 10 neg & 0.537 & 0.563 & \textbf{0.831} & \textbf{0.834} & \textbf{0.840} \\
     \hline
@@ -249,13 +246,13 @@ Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong 
 
 The SIDER dataset contains information on marketed medicines and their observed adverse reactions \cite{kuhn2015sider}. We originally tested on the original 5868 side effect categories, but due to lack of signal at this level of granularity we grouped the drug-SE pairs into 27 system organ classes according to MedDRA classifications \cite{meddra}. We treat the problem of predicting whether a given compound induces a side-effect as an individual task (for 27 tasks in total). For the low-data benchmark, all models were trained on the first 21 tasks and tested on the last 6. For details see appendix.
 
-Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the Residual LSTM models showing a more robust boost in the presence of less data.
+Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data.
 
 \begin{table}
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & ResLSTM \\ 
+    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10 pos, 10 neg & 0.551 & 0.546 & 0.660 & 0.671 & \textbf{0.752} \\
     \hline
@@ -275,13 +272,13 @@ Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong 
 \subsection{MUV}
 The MUV dataset collection \cite{rohrer2009maximum} contains 17 assays designed to be challenging for standard virtual screening. The positives examples in these datasets are selected to be structurally distinct from one another. As a result, this collection is a best-case scenario for baseline machine learning (since each data point is maximally informative) and a worst-case test for the low-data methods, since structural similarity cannot be effectively exploited to predict behavior of new active compounds.
 
-Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the residual LSTM does well, it does not achieve the best performance. This result suggests that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
+Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the iterative refinement LSTM does well, it does not achieve the best performance. This result suggests that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
 
 \begin{table}
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & ResLSTM \\ 
+    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10 pos, 10 neg & 0.710 & \textbf{0.741} & 0.501 & 0.683 & \textbf{0.712} \\
     \hline
@@ -308,7 +305,7 @@ Results are in Table~\ref{tab:transfer}. None of our models achieve any predicti
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER from Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & ResLSTM \\ 
+    SIDER from Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10 pos, 10 neg & .551 & .546 & 0.504 & 0.510 & .509 \\
     \hline
@@ -323,7 +320,7 @@ This paper introduces the task of low data learning for drug discovery, and prov
 
 At the same time, it is clear that there are strong limitations to the generalization powers of current one-shot learning methods. On the MUV datasets, one-shot learning methods struggle (but hold their own) against simple machine-learning baselines. This result is likely due to the presence of diverse scaffolds in the MUV collection, suggesting that one-shot learning methods may struggle to generalize to novel molecular scaffolds. Furthermore, on the transfer learning experiment, which attempts to use the Tox21 collection to train SIDER predictors, all one-shot learning methods collapse entirely. It is clear that there is a limit to the cross-task generalization capability of one-shot models, but it is left to future work to determine the precise limits.
 
-In order to facilitate the wide adoption of these models, we've open-sourced all graph-convolutional primitives in addition to the Residual LSTM models themselves as part of the DeepChem library. All scripts used to perform experiments listed in this paper have been made public as well.
+In order to facilitate the wide adoption of these models, we've open-sourced all graph-convolutional primitives in addition to the iterative refinement LSTM models themselves as part of the DeepChem library. All scripts used to perform experiments listed in this paper have been made public as well.
 
 The use of one-shot learning in chemistry can only be validated experimentally, but we hope that our results will the impetus for such work.
 
@@ -358,7 +355,7 @@ where $\sigma(\cdot)$ is a nonlinearity, such as ReLU or tanh.
 
 \subsection{Convolutional Architecture in this Paper}
 
-The Siamese, AttnLSTM, and ResLSTM models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
+The Siamese, AttnLSTM, and IterRefLSTM models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
 
 \begin{table}
     \begin{tabular}{ r | c | c | c | c | c | c | c | c |}
