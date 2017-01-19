@@ -7,7 +7,11 @@
 %% the target journal and optionally the manuscript type.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[journal=jacsat,manuscript=article]{achemso}
-
+%DIF 10c10
+%DIF < 
+%DIF -------
+\setkeys{acs}{articletitle=true} %DIF > 
+%DIF -------
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Place any additional packages needed here.  Only include packages
 %% which are essential, to avoid problems later. Do NOT use any
@@ -17,8 +21,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[version=3]{mhchem} % Formula subscripts using \ce{}
 
-%\documentclass{nature}
-%\bibliographystyle{naturemag}
+%DIF 20-21c20
+%DIF < %\documentclass{nature}
+%DIF < %\bibliographystyle{naturemag}
+%DIF -------
+\bibliographystyle{achemso} %DIF > 
+%DIF -------
 
 
 \usepackage{hyperref}
@@ -48,7 +56,7 @@
 \affiliation{Department of Chemistry, Stanford University}
 \email{pande@stanford.edu}
 
-%DIF 51d51
+%DIF 51d50
 %DIF < %\title{Residual LSTM Embeddings for One-shot Learning in Drug Discovery}
 %DIF -------
 \title{Low Data Drug Discovery with One-shot Learning}
@@ -82,7 +90,7 @@
 \maketitle
 
 \begin{abstract}
-Recent advances in machine learning have made significant contributions to drug discovery. Deep neural networks in particular have been demonstrated to provide significant boosts in predictive power when inferring the properties and activities of small-molecule compounds \cite{ma2015deep}. However, the applicability of these techniques has been limited by the requirement for large amounts of training data. In this work, we demonstrate how one-shot learning can be used to significantly lower the amounts of data required to make meaningful predictions in drug discovery applications. We introduce a new architecture, the \DIFdelbegin \DIFdel{residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM embedding, that, when combined with graph convolutional neural networks, significantly improves the ability to learn meaningful distance metrics over small-molecules. We open source all models introduced in this work as part of DeepChem, an open-source framework for deep-learning in drug discovery
+Recent advances in machine learning have made significant contributions to drug discovery. Deep neural networks in particular have been demonstrated to provide significant boosts in predictive power when inferring the properties and activities of small-molecule compounds \cite{ma2015deep}. However, the applicability of these techniques has been limited by the requirement for large amounts of training data. In this work, we demonstrate how one-shot learning can be used to significantly lower the amounts of data required to make meaningful predictions in drug discovery applications. We introduce a new architecture, the \DIFdelbegin \DIFdel{residual LSTMembedding}\DIFdelend \DIFaddbegin \DIFadd{iterative refinement LSTM}\DIFaddend , that, when combined with graph convolutional neural networks, significantly improves the ability to learn meaningful distance metrics over small-molecules. We open source all models introduced in this work as part of DeepChem, an open-source framework for deep-learning in drug discovery
 \cite{ram2016}.
 \end{abstract}
 
@@ -107,6 +115,15 @@ Furthermore, we take a strong open-source approach in this work. Every primitive
 %Matching Networks Paper. Massively Multitask Networks for Drug %Discovery. Merck Deep Learning Papers. Graph convolutions. Google Graph %Convolutions. 
 
 \section{Methods}
+\DIFaddbegin \DIFadd{Figure~\ref{fig:schematic} provides a high-level schematic of our architecture for one-shot learning in drug-discovery. The remainder of this section will expand on the subcomponents that comprise such an architecture and introduce our proposed iterative refinement LSTM module.
+}
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{schematic.png}
+\captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
+\label{fig:schematic}
+\end{figure}
+\DIFaddend 
 
 \subsection{Mathematical Formalism}
 
@@ -117,12 +134,15 @@ In this paper, we consider the situation in which one has multiple binary learni
 Mathematically, we have $T$ tasks, each associated with a data set, $S=\left\{\left(x_i,y_i\right)\right\}_{i=1}^{m}$, $y_i\in\left\{0,1\right\}$. We refer to the collection of available datapoints for a given task as a "support" set. The goal is to learn a function $h$, parameterized upon choice of support $S$ that predicts the probability of any query $x$ being active in the same system. Formally, $h_S(x)\,:\,\mathcal{X}\rightarrow\left[0,1\right]$, where $\mathcal{X}$ is the chemical space of small-molecules. If $h$ is specified with a neural network, fully differentiable with respect to $x$ \emph{and} $S$, then $h$ can be trained end-to-end with gradient descent.
 
 
-\begin{figure}
-\includegraphics[width=\textwidth]{schematic.png}
-\captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
-\end{figure}
 
-\subsection{Simple One-shot learning}
+\DIFdelbegin %DIFDELCMD < \begin{figure}
+%DIFDELCMD < \includegraphics[width=\textwidth]{schematic.png}
+%DIFDELCMD < \captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
+%DIFDELCMD < \end{figure}
+%DIFDELCMD < 
+
+%DIFDELCMD < %%%
+\DIFdelend \subsection{Simple One-shot learning}
 
 Deep one-shot learning systems \cite{santoro2016one, vinyals2016matching} use convolutional layers to encode images into continuous vectors. In the simplest one-shot learning formalism these continuous vectors are then fed into a simple nearest-neighbor classifier, that labels new examples by distance-weighted combination of support set labels. Let $a(x, x_i)$ denote some weighting function for query example $x$ and support set element $x_i$ with associated label $y_i$. Then the label $h_S(x)$ for query compound $x$ can be defined as
 \[
@@ -134,7 +154,8 @@ The attention mechanism $a$ depends on two embedding functions $f\,:\,\mathcal{X
 \[
 a(x,x_i) = \frac{k\left(f(x),g(x_i\right))}{\sum\nolimits_{j=1}^{m} k\left(f(x),g(x_j\right))}
 \]
-Note that $a(x,x_i)$ is large when $f(x)$ is closer to $g(x_i)$ under metric $k$ compared to the other $g(x_j)$'s. This formulation of one-shot learning has been referred to as a Siamese one-shot learning method \cite{koch2015siamese}.
+Note that $a(x,x_i)$ is large when $f(x)$ is closer to $g(x_i)$ under metric $k$ compared to the other $g(x_j)$'s. This formulation of one-shot learning has been referred to as a Siamese one-shot learning method \cite{koch2015siamese}. \DIFaddbegin \DIFadd{If $f$ and $g$ are circular fingerprints}\cite{rogers2010extended}\DIFadd{, and $k$ the Tanimoto distance, notice that this formula matches standard chemoinformatic similarity methods.
+}\DIFaddend 
 
 % Example similarity functions include the exponentiated cosine similarity, $k(z,z^\prime)=e^{\cos\left(z,z^\prime\right)}$ or the RBF kernel, $k(z,z^\prime)=e^{-\|z - z^\prime|_2^2/2}$. 
 
@@ -158,8 +179,14 @@ Both the $\text{BiLSTM}$ and $\text{attLSTM}$ are mechanisms for combining seque
 %take $g^\prime(S)$ to be $\left[g^\prime(x_1)^\top,\dots,g^\prime(x_m)^\top\right]^\top$
 
 \subsection{Iterative refinement \DIFdelbegin \DIFdel{using Dual Residual }\DIFdelend LSTMs}
+\DIFaddbegin \begin{figure}[h]
+\includegraphics[width=\textwidth]{resiembedding_graphic_v2.png}
+\captionof{figure}{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
+\label{fig:resiembed}
+\end{figure}
+\DIFaddend 
 
-Our proposed architecture for one-shot learning preserves the context-aware design of matching networks, but resolves the order dependence in the support-embedding $g$ and the non-symmetric treatment of the query and support noted in the previous section.
+Our proposed architecture for one-shot learning preserves the context-aware design of matching networks, but resolves the order dependence in the support-embedding $g$ and the non-symmetric treatment of the query and support noted in the previous section \DIFaddbegin \DIFadd{(Figure~\ref{fig:resiembed})}\DIFaddend .
 
 The core idea is to use an $\text{attLSTM}$ to generate both query embedding $f$ and support embedding $g$. As noted previously, the matching networks \cite{vinyals2016matching} embedding requires the support embedding $g(\cdot \mid S)$ to define $f(\cdot \mid S)$. To resolve this issue, our architecture iteratively evolves both embeddings simultaneously.
 
@@ -189,11 +216,17 @@ On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. 
 \vspace{6pt}
 
 The generated dual embeddings are used to perform one-shot learning as in the simpler models explained in previous sections.
-\begin{figure}
-\includegraphics[width=\textwidth]{resiembedding_graphic.png}
-\label{fig:resiembed}
-\caption{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
-\end{figure}
+\DIFdelbegin %DIFDELCMD < \begin{figure}
+%DIFDELCMD < \includegraphics[width=\textwidth]{resiembedding_graphic.png}
+%DIFDELCMD < \label{fig:resiembed}
+%DIFDELCMD < %%%
+%DIFDELCMD < \caption{%
+{%DIFAUXCMD
+\DIFdel{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}}
+%DIFAUXCMD
+%DIFDELCMD < \end{figure}
+%DIFDELCMD < %%%
+\DIFdelend 
 
 
 \subsection{Graph Convolutions}
@@ -207,9 +240,12 @@ These graph-convolutional operations are useful for transforming small-molecules
 
 To facilitate the use of graph-convolutional layers in future work, we open-source our Tensorflow\cite{abadi2016tensorflow} implementation of graph-convolutions, graph-pooling, and graph-gathering layers as part of DeepChem \cite{ram2016}.
 
-\begin{figure}[h]
-\includegraphics[width=\textwidth]{graphconv_graphic.png}
-\captionof{figure}{Graphical representation of the major graph operations described in this paper. For each of the operations, the nodes being operated on are shown in blue, with unchanged nodes shown in light blue. For graph convolution and graph pool, the operation is shown for a single node, $v$, however, these operations are performed on all nodes $v$ in the graph simultaneously.}
+\DIFdelbegin %DIFDELCMD < \begin{figure}[h]
+%DIFDELCMD < \includegraphics[width=\textwidth]{graphconv_graphic.png}
+%DIFDELCMD < %%%
+\DIFdelend \DIFaddbegin \begin{figure}[H]
+\includegraphics[width=\textwidth]{graphconv_graphic_v2.png}
+\DIFaddendFL \captionof{figure}{Graphical representation of the major graph operations described in this paper. For each of the operations, the nodes being operated on are shown in blue, with unchanged nodes shown in light blue. For graph convolution and graph pool, the operation is shown for a single node, $v$, however, these operations are performed on all nodes $v$ in the graph simultaneously.}
 \label{conv}
 \end{figure}
 
@@ -218,107 +254,154 @@ To facilitate the use of graph-convolutional layers in future work, we open-sour
 \subsection{Model Training}
 The objective for the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models is similar to that for the matching networks, with the key difference that a set of training tasks are specified instead of a set of training classes. Let $\text{Tasks}$ represent the set of training tasks. Let $S$ represent a support set, and let $B$ represent a batch of queries.
 \[
-\theta = \arg\max_\theta E_{T\in\text{Tasks}} \left [ E_{S\sim T,, B\sim T} \left [ \sum_{(x,y) \in B} \log P_\theta(y\mid x, S) \right ] \right ]
+\DIFdelbegin \DIFdel{\theta }\DIFdelend \DIFaddbegin \DIFadd{\mathcal{L} }\DIFaddend = \DIFdelbegin \DIFdel{\arg\max_\theta }\DIFdelend E_{T\in\text{Tasks}} \left [ E_{S\sim T,, B\sim T} \left [ \sum_{(x,y) \in B} \log P_\theta(y\mid x, S) \right ] \right ]
 \]
 
- Training consisted of a sequence of episodes. In each episode, a task $T$ was randomly sampled, then a support $S$ and a batch of queries $B$ (non-overlapping) were sampled from the task. One gradient descent step, using ADAM \cite{kingma2014adam} was performed for each episode. We experimented with more gradient descent steps per episode, but found that sampling more supports instead improved performance.
+ Training consisted of a sequence of episodes. In each episode, a task $T$ was randomly sampled, then a support $S$ and a batch of queries $B$ (non-overlapping) were sampled from the task. One gradient descent step \DIFaddbegin \DIFadd{minimizing $\mathcal{L}$}\DIFaddend , using ADAM \cite{kingma2014adam} was performed for each episode. We experimented with more gradient descent steps per episode, but found that sampling more supports instead improved performance.
 \section{Experiments}
 \subsection{Tox21}
 The Tox21 collection consists of 12 nuclear receptor assays related to human toxicity, first gathered for the Tox21 Data Challenge \cite{tox21}. The winner of this challenge used a multitask deep-network \cite{unterthiner2015toxicity} to achieve strong predictive performance.
 
 For a low-data benchmark, we don't use the standard train/test split for this dataset. Instead, we use the first nine assays as the training set, and the last 3 assays as the test collection. For details, see appendix.
 
-Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models showing a more robust boost in the presence of less data.
-\begin{table}[h]
+Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models showing a more robust boost in the presence of less data. \DIFdelbegin %DIFDELCMD < \begin{table}[h]
+%DIFDELCMD <     \centering
+%DIFDELCMD <     \begin{tabular}{ |c|c|c|c|c|c| } 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{Tox21 }%DIFDELCMD < & %%%
+\DIFdel{RF (50 trees) }%DIFDELCMD < & %%%
+\DIFdel{RF (100 trees) }%DIFDELCMD < & %%%
+\DIFdel{Siamese }%DIFDELCMD < & %%%
+\DIFdel{AttnLSTM }%DIFDELCMD < & %%%
+\DIFdel{ResLSTM }%DIFDELCMD < \\ 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{10 pos, 10 neg }%DIFDELCMD < & %%%
+\DIFdel{0.537 }%DIFDELCMD < & %%%
+\DIFdel{0.563 }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.831} }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.834} }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.840} }%DIFDELCMD < \\
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{5 pos, 10 neg }%DIFDELCMD < & %%%
+\DIFdel{0.537 }%DIFDELCMD < & %%%
+\DIFdel{0.579 }%DIFDELCMD < & %%%
+\DIFdel{0.790 }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.820} }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.837} }%DIFDELCMD < \\ 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{1 pos, 10 neg }%DIFDELCMD < & %%%
+\DIFdel{0.537 }%DIFDELCMD < & %%%
+\DIFdel{0.584 }%DIFDELCMD < & %%%
+\DIFdel{0.710 }%DIFDELCMD < & %%%
+\DIFdel{0.687 }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.757} }%DIFDELCMD < \\ 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{1 pos, 5 neg }%DIFDELCMD < & %%%
+\DIFdel{0.571 }%DIFDELCMD < & %%%
+\DIFdel{0.572 }%DIFDELCMD < & %%%
+\DIFdel{0.689 }%DIFDELCMD < & %%%
+\DIFdel{0.595 }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.815} }%DIFDELCMD < \\ 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     %%%
+\DIFdel{1 pos, 1 neg }%DIFDELCMD < & %%%
+\DIFdel{0.536 }%DIFDELCMD < & %%%
+\DIFdel{0.542 }%DIFDELCMD < & %%%
+\DIFdel{0.668 }%DIFDELCMD < & %%%
+\DIFdel{0.652 }%DIFDELCMD < & %%%
+\DIFdel{\textbf{0.784}}%DIFDELCMD < \\ 
+%DIFDELCMD <     \hline
+%DIFDELCMD <     \end{tabular}
+%DIFDELCMD <     %%%
+%DIFDELCMD < \caption{%
+{%DIFAUXCMD
+\DIFdel{Accuracies of models on held-out tasks for Tox21. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets.}}
+    %DIFAUXCMD
+%DIFDELCMD < \label{tab:tox21}
+%DIFDELCMD < \end{table}
+%DIFDELCMD < %%%
+\DIFdelend \DIFaddbegin \DIFadd{Interestingly, the iterative refinement LSTM appears to display lower variance due to choice of support set when compared to other models, demonstrating a potential benefit of iterative refinement process. The singletask graph convolutional baseline performs much worse than all one-shot models, demonstrating that the strong performance of one-shot models likely requires architectures that explicitly promote metric learning.
+}\DIFaddend \begin{table}[h]
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
+    Tox21 & RF (\DIFdelbeginFL \DIFdelFL{50 trees) }%DIFDELCMD < & %%%
+\DIFdelFL{RF (}\DIFdelendFL 100 trees) & \DIFaddbeginFL \DIFaddFL{Graph Conv }& \DIFaddendFL Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
     \hline
-    10 pos, 10 neg & 0.537 & 0.563 & \textbf{0.831} & \textbf{0.834} & \textbf{0.840} \\
+    10\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.537 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.586 \pm 0.056$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.563 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.648 \pm 0.029$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.831} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.820 \pm 0.003$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.834} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.832 \pm 0.004$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.840} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.\mathbf{848 \pm 0.003}$ }\DIFaddendFL \\
     \hline
-    5 pos, 10 neg & 0.537 & 0.579 & 0.790 & \textbf{0.820} & \textbf{0.837} \\ 
+    5\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.537 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.573 \pm 0.060$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.579 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.637 \pm 0.061$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.790 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.823 \pm 0.004$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.820} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.832 \pm 0.005$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.837} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.843 \pm 0.003}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 10 neg & 0.537 & 0.584 & 0.710 & 0.687 & \textbf{0.757} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.537 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.551 \pm 0.067$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.584 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.541 \pm 0.093$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.710 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.726 \pm 0.173$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.687 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.674 \pm 0.130$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.757} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.800 \pm 0.046}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 5 neg & 0.571 & 0.572 & 0.689 & 0.595 & \textbf{0.815} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 5 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/5- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.571 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.559 \pm 0.063$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.572 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.595 \pm 0.086$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.689 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.687 \pm 0.210$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.595 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.655 \pm 0.239$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.815} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.808 \pm 0.012}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 1 neg & 0.536 & 0.542 & 0.668 & 0.652 & \textbf{0.784}\\ 
-    \hline
-    \end{tabular}
-    \caption{Accuracies of models on held-out tasks for Tox21. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets.}
-    \label{tab:tox21}
-\end{table}
-\begin{table}[h]
-    \centering
-    \begin{tabular}{ |c|c|c|c|c|c| } 
-    \hline
-    Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
-    \hline
-    10 pos, 10 neg & 0.537 & 0.563 & \textbf{0.831} & \textbf{0.834} & \textbf{0.840} \\
-    \hline
-    5 pos, 10 neg & 0.537 & 0.579 & 0.790 & \textbf{0.820} & \textbf{0.837} \\ 
-    \hline
-    1 pos, 10 neg & 0.537 & 0.584 & 0.710 & 0.687 & \textbf{0.757} \\ 
-    \hline
-    1 pos, 5 neg & 0.571 & 0.572 & 0.689 & 0.595 & \textbf{0.815} \\ 
-    \hline
-    1 pos, 1 neg & 0.536 & 0.542 & 0.668 & 0.652 & \textbf{0.784}\\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 1 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/1- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.536 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.535 \pm 0.056$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.542 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.589 \pm 0.068$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.668 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.657 \pm 0.222$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.652 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.619 \pm 0.255$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.784}}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.826 \pm 0.011}$}\DIFaddendFL \\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for Tox21. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets.}
+    \caption{Accuracies of models on \DIFaddbeginFL \DIFaddFL{median }\DIFaddendFL held-out \DIFdelbeginFL \DIFdelFL{tasks }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{task }\DIFaddendFL for \DIFaddbeginFL \DIFaddFL{each model on }\DIFaddendFL Tox21. Numbers reported are \DIFdelbeginFL \DIFdelFL{median on test-tasks}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{means and standard deviations}\DIFaddendFL . \DIFdelbeginFL \DIFdelFL{Numbers for each task are averaged for 20 random choices }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Randomness is over the choice }\DIFaddendFL of support \DIFaddbeginFL \DIFaddFL{set; experiment is repeated with 20 support }\DIFaddendFL sets. \DIFaddbeginFL \DIFaddFL{The appendix contains results for all held-out Tox21 tasks. The result with highest mean in each row is highlighted.}\DIFaddendFL }
     \label{tab:tox21}
 \end{table}
-\subsection{SIDER}
+\DIFaddbegin 
+
+\DIFaddend \subsection{SIDER}
 
 The SIDER dataset contains information on marketed medicines and their observed adverse reactions \cite{kuhn2015sider}. We originally tested on the original 5868 side effect categories, but due to lack of signal at this level of granularity we grouped the drug-SE pairs into 27 system organ classes according to MedDRA classifications \cite{meddra}. We treat the problem of predicting whether a given compound induces a side-effect as an individual task (for 27 tasks in total). For the low-data benchmark, all models were trained on the first 21 tasks and tested on the last 6. For details see appendix.
 
-Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models showing a more robust boost in the presence of less data.
+Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models showing a more robust boost in the presence of less data. \DIFaddbegin \DIFadd{As before, the iterative refinement models tend to have lower variance. The graph convolutional baseline does poorly, with performance indistinguishable from random.
+}\DIFaddend 
 
 \begin{table}
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
+    SIDER & RF (\DIFdelbeginFL \DIFdelFL{50 trees) }%DIFDELCMD < & %%%
+\DIFdelFL{RF (}\DIFdelendFL 100 trees) & \DIFaddbeginFL \DIFaddFL{Graph Conv }& \DIFaddendFL Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
     \hline
-    10 pos, 10 neg & 0.551 & 0.546 & 0.660 & 0.671 & \textbf{0.752} \\
+    10\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.551 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.535 \pm 0.036$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.546 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.483 \pm 0.026$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.660 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.687 \pm 0.089$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.671 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.677 \pm 0.063$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.752} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.750 \pm 0.003}$ }\DIFaddendFL \\
     \hline
-    5 pos, 10 neg & 0.534 & 0.541 & 0.674 & 0.671 & \textbf{0.750} \\ 
+    5\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.534 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.533 \pm 0.030$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.541 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.473 \pm 0.029$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.674 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.648 \pm 0.070$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.671 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.645 \pm 0.122$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.750} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.737 \pm 0.003}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 10 neg & 0.537 & 0.533 & 0.542 & 0.543 & \textbf{0.602} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.537 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.540 \pm 0.034$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.533 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.447 \pm 0.016$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.542 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.544 \pm 0.056$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.543 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.551 \pm 0.055$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.602} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.583 \pm 0.014}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 5 neg & 0.536 & 0.535 & 0.544 & 0.539 & \textbf{0.639} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 5 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/5- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.536 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.529 \pm 0.028$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.535 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.457 \pm 0.029$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.544 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.530 \pm 0.050$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.539 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.520 \pm 0.056$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.639} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.614 \pm 0.016}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 1 neg & 0.504 & 0.501 & 0.506 & 0.505 & \textbf{0.623} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 1 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/1- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.504 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.506 \pm 0.039$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.501 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.468 \pm 0.045$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.506 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.510 \pm 0.016$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.505 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.505 \pm 0.032$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.623} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.642 \pm 0.068}$ }\DIFaddendFL \\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for SIDER. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models on \DIFaddbeginFL \DIFaddFL{median }\DIFaddendFL held-out \DIFdelbeginFL \DIFdelFL{tasks }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{task }\DIFaddendFL for \DIFaddbeginFL \DIFaddFL{each model on }\DIFaddendFL SIDER. Numbers reported are \DIFdelbeginFL \DIFdelFL{median on test-tasks}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{means and standard deviations}\DIFaddendFL . \DIFdelbeginFL \DIFdelFL{Numbers for each task are averaged for 20 random choices }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Randomness is over the choice }\DIFaddendFL of support \DIFaddbeginFL \DIFaddFL{set; experiment is repeated with 20 support }\DIFaddendFL sets\DIFaddbeginFL \DIFaddFL{. The appendix contains results for all held-out SIDER tasks. The result with highest mean in each row is highlighted.}\DIFaddendFL }
     \label{tab:sider}
 \end{table}
 
 \subsection{MUV}
 The MUV dataset collection \cite{rohrer2009maximum} contains 17 assays designed to be challenging for standard virtual screening. The positives examples in these datasets are selected to be structurally distinct from one another. As a result, this collection is a best-case scenario for baseline machine learning (since each data point is maximally informative) and a worst-case test for the low-data methods, since structural similarity cannot be effectively exploited to predict behavior of new active compounds.
 
-Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the \DIFdelbegin \DIFdel{residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM does well, it does not achieve the best performance. This result suggests that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
+Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the \DIFdelbegin \DIFdel{residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM does well, it does not achieve the best performance\DIFdelbegin \DIFdel{. This result suggests }\DIFdelend \DIFaddbegin \DIFadd{; however, as before, the iterative refinement models do tend to have lower variance than other methods. The graph-convolutional baseline struggles on MUV as well, suggesting that part of the difficulty of MUV may be due to current limitations of graph convolutions. That said, these results suggest }\DIFaddend that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
 
 \begin{table}
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
+    \DIFdelbeginFL \DIFdelFL{SIDER }%DIFDELCMD < & %%%
+\DIFdelFL{RF (50 trees) }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{MUV }\DIFaddendFL & RF (100 trees) & \DIFaddbeginFL \DIFaddFL{Graph Conv }& \DIFaddendFL Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
     \hline
-    10 pos, 10 neg & 0.710 & \textbf{0.741} & 0.501 & 0.683 & \textbf{0.712} \\
+    10\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.710 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.754 \pm 0.064}$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.741} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.568 \pm 0.085$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.501 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.601 \pm 0.041$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.683 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.619 \pm 0.095$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.712} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.693 \pm 0.028$ }\DIFaddendFL \\
     \hline
-    5 pos, 10 neg & 0\textbf{.723} & \textbf{.751} & 0.708 & 0.674 & 0.672 \\ 
+    5\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0\textbf{.723} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.730 \pm 0.063}$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{.751} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.565 \pm 0.068$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.708 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.655 \pm 0.166$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.674 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.641 \pm 0.116$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.672 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.682 \pm 0.023$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 10 neg & 0.586 & \textbf{0.624} & 0.567 & 0.583 & \textbf{0.619} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 10 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.586 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.556 \pm 0.084$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.624} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.569 \pm 0.061$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.567 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.602 \pm 0.118$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.583 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.572 \pm 0.185$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.619} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.640 \pm 0.124}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 5 neg & 0.561 & 0.579 & 0.546 & 0.565 & \textbf{0.634} \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 5 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/5- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.561 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.598 \pm 0.067$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.579 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.554 \pm 0.089$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.546 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.514 \pm 0.053$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.565 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.553 \pm 0.193$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{\textbf{0.634} }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.623 \pm 0.079}$ }\DIFaddendFL \\ 
     \hline
-    1 pos, 1 neg & 0.558 & 0.573 & 0.498 & 0.501 & 0.512 \\ 
+    1\DIFdelbeginFL \DIFdelFL{pos, 1 neg }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/1- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.558 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$\mathbf{0.559 \pm 0.095}$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.573 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.552 \pm 0.084$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.498 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.500 \pm 0.0001$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.501 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.505 \pm 0.036$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.512 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.481 \pm 0.025$ }\DIFaddendFL \\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for MUV. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models on \DIFaddbeginFL \DIFaddFL{median }\DIFaddendFL held-out \DIFdelbeginFL \DIFdelFL{tasks }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{task }\DIFaddendFL for \DIFaddbeginFL \DIFaddFL{each model on }\DIFaddendFL MUV. Numbers reported are \DIFdelbeginFL \DIFdelFL{median on test-tasks}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{means and standard deviations}\DIFaddendFL . \DIFdelbeginFL \DIFdelFL{Numbers for each task are averaged for 20 random choices }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Randomness is over the choice }\DIFaddendFL of support \DIFaddbeginFL \DIFaddFL{set; experiment is repeated with 20 support }\DIFaddendFL sets\DIFaddbeginFL \DIFaddFL{. The appendix contains results for all held-out MUV tasks. The result with highest mean in each row is highlighted.}\DIFaddendFL }
     \label{tab:MUV}
 \end{table}
 
@@ -326,18 +409,24 @@ Results are in Table~\ref{tab:MUV}. The random forest baseline does significantl
 
 The experiments thus far have tested the ability of one-shot learning methods to generalize from training tasks to closely related testing tasks. To test whether one-shot learning methods are capable of broader generalization, we trained models on the Tox21 dataset collection and evaluated predictive accuracy on the SIDER collection. Note that these collections are broadly distinct, with Tox21 measuring results in nuclear receptor assays, and SIDER measuring adverse reactions from real patients.
 
-Results are in Table~\ref{tab:transfer}. None of our models achieve any predictive power on this task (the random forest numbers are copied over from Table~\ref{tab:sider} for comparison), providing evidence that the one-shot models have limited generalization powers to unrelated systems.
+Results are in Table~\ref{tab:transfer}. None of our models achieve any predictive power on this task\DIFdelbegin \DIFdel{(the random forest numbers are copied over from Table~\ref{tab:sider} for comparison)}\DIFdelend , providing evidence that the one-shot models have limited generalization powers to unrelated systems.
 
 \begin{table}
     \centering
-    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \DIFdelbeginFL %DIFDELCMD < \begin{tabular}{ |c|c|c|c|c|c| } 
+%DIFDELCMD <     %%%
+\DIFdelendFL \DIFaddbeginFL \begin{tabular}{ |c|c|c|c| } 
+    \DIFaddendFL \hline
+    SIDER from Tox21 & \DIFdelbeginFL \DIFdelFL{RF (50 trees) }%DIFDELCMD < & %%%
+\DIFdelFL{RF (100 trees) }%DIFDELCMD < & %%%
+\DIFdelendFL Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
     \hline
-    SIDER from Tox21 & RF (50 trees) & RF (100 trees) & Siamese & AttnLSTM & \DIFdelbeginFL \DIFdelFL{ResLSTM }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{IterRefLSTM }\DIFaddendFL \\ 
-    \hline
-    10 pos, 10 neg & .551 & .546 & 0.504 & 0.510 & .509 \\
+    10\DIFdelbeginFL \DIFdelFL{pos, 10 neg }%DIFDELCMD < & %%%
+\DIFdelFL{.551 }%DIFDELCMD < & %%%
+\DIFdelFL{.546 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{+/10- }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.504 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.511 \pm 0.031$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{0.510 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.509 \pm 0.014$ }\DIFaddendFL & \DIFdelbeginFL \DIFdelFL{.509 }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{$0.509 \pm 0.012$ }\DIFaddendFL \\
     \hline
     \end{tabular}
-    \caption{Accuracies of models trained on Tox21 and evaluated on SIDER. Random forest numbers copied over from SIDER table for comparative purposes. Numbers reported are median on SIDER tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models trained on Tox21 \DIFdelbeginFL \DIFdelFL{and evaluated }\DIFdelendFL on \DIFaddbeginFL \DIFaddFL{median }\DIFaddendFL SIDER \DIFdelbeginFL \DIFdelFL{. Random forest numbers copied over from SIDER table }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{task }\DIFaddendFL for \DIFdelbeginFL \DIFdelFL{comparative purposes}\DIFdelendFL \DIFaddbeginFL \DIFaddFL{each model on SIDER}\DIFaddendFL . \DIFdelbeginFL \DIFdelFL{Numbers reported }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{Note that models }\DIFaddendFL are \DIFdelbeginFL \DIFdelFL{median }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{evaluated }\DIFaddendFL on \DIFaddbeginFL \DIFaddFL{all }\DIFaddendFL SIDER tasks \DIFaddbeginFL \DIFaddFL{and not just the held-out SIDER tasks from previous section}\DIFaddendFL . Numbers \DIFdelbeginFL \DIFdelFL{for each task }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{reported }\DIFaddendFL are \DIFdelbeginFL \DIFdelFL{averaged for 20 random choices }\DIFdelendFL \DIFaddbeginFL \DIFaddFL{means and standard deviations. Randomness is over the choice }\DIFaddendFL of support \DIFaddbeginFL \DIFaddFL{set; experiment is repeated with 20 support }\DIFaddendFL sets\DIFaddbeginFL \DIFaddFL{. The result with highest mean in each row is highlighted.}\DIFaddendFL }
     \label{tab:transfer}
 \end{table}
 
@@ -345,15 +434,16 @@ Results are in Table~\ref{tab:transfer}. None of our models achieve any predicti
 
 This paper introduces the task of low data learning for drug discovery, and provides an architecture for learning such models. We demonstrate that this architecture can provide strong boosts over simpler methods for low-data learning. On the Tox21 and SIDER collections, one-shot learning methods strongly dominate simpler machine learning baselines. This result is particularly interesting for the SIDER collection, since this dataset consists of very high-level phenotypic side-effect observations. Given the amount of uncertainty in these predictions, the fact that one-shot learning is able to do well is a strong indication that these methods could offer strong performance on small biological datasets (for example, perhaps on a small number of drug tests done with rats).
 
-At the same time, it is clear that there are strong limitations to the generalization powers of current one-shot learning methods. On the MUV datasets, one-shot learning methods struggle (but hold their own) against simple machine-learning baselines. This result is likely due to the presence of diverse scaffolds in the MUV collection, suggesting that one-shot learning methods may struggle to generalize to novel molecular scaffolds. Furthermore, on the transfer learning experiment, which attempts to use the Tox21 collection to train SIDER predictors, all one-shot learning methods collapse entirely. It is clear that there is a limit to the cross-task generalization capability of one-shot models, but it is left to future work to determine the precise limits.
+At the same time, it is clear that there are strong limitations to the generalization powers of current one-shot learning methods. On the MUV datasets, one-shot learning methods struggle (but hold their own) against simple machine-learning baselines. This result is likely due to the presence of diverse scaffolds in the MUV collection, suggesting that one-shot learning methods may struggle to generalize to novel molecular scaffolds. Furthermore, on the transfer learning experiment, which attempts to use the Tox21 collection to train SIDER predictors, all one-shot learning methods collapse entirely. It is clear that there is a limit to the cross-task generalization capability of one-shot models, but it is left to future work to determine the precise limits. \DIFaddbegin \DIFadd{Future work might also investigate the structure of the embeddings learned by the iterative refinement LSTM modules, to understand how these representations compare to standard techniques such as circular fingerprints. It might, for example, be possible to perform one-shot learning purely with circular fingerprints rather than learned dense embeddings.
+}\DIFaddend 
 
 In order to facilitate the wide adoption of these models, we've open-sourced all graph-convolutional primitives in addition to the \DIFdelbegin \DIFdel{Residual }\DIFdelend \DIFaddbegin \DIFadd{iterative refinement }\DIFaddend LSTM models themselves as part of the DeepChem library. All scripts used to perform experiments listed in this paper have been made public as well.
 
-The use of one-shot learning in chemistry can only be validated experimentally, but we hope that our results will the impetus for such work.
+The use of one-shot learning in chemistry can only be validated experimentally, but we hope that our results will \DIFaddbegin \DIFadd{provide }\DIFaddend the impetus for such work.
 
 \subsubsection*{Acknowledgments}
 
-We would like to thank the Stanford Computing Resources for providing us with access to the Sherlock and Xstream GPU nodes. Thanks to David Duvenaud for useful preliminary discussions.
+We would like to thank the Stanford Computing Resources for providing us with access to the Sherlock and Xstream GPU \DIFdelbegin \DIFdel{nodes}\DIFdelend \DIFaddbegin \DIFadd{clusters}\DIFaddend . Thanks to David Duvenaud for useful preliminary discussions.
 
 B.R. was supported by the Fannie and John Hertz Foundation.
 
@@ -382,7 +472,7 @@ where $\sigma(\cdot)$ is a nonlinearity, such as ReLU or tanh.
 
 \subsection{Convolutional Architecture in this Paper}
 
-The Siamese, AttnLSTM, and \DIFdelbegin \DIFdel{ResLSTM }\DIFdelend \DIFaddbegin \DIFadd{IterRefLSTM }\DIFaddend models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
+The \DIFaddbegin \DIFadd{Graph Conv, }\DIFaddend Siamese, AttnLSTM, and \DIFdelbegin \DIFdel{ResLSTM }\DIFdelend \DIFaddbegin \DIFadd{IterRefLSTM }\DIFaddend models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
 
 \begin{table}
     \begin{tabular}{ r | c | c | c | c | c | c | c | c |}
@@ -402,25 +492,326 @@ For the convolutional models, all molecules were featurized into graphs by consi
 
 \subsection{Tox21 Details}
 
-The assays NR-AR, NR-AR-LBD, NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5 were used for training. Assays SR-HSE, SR-MMP, and SR-p53 were used for model evaluation.
+\DIFaddbegin \subsubsection{\DIFadd{Assay Details}}
+\DIFaddend The assays NR-AR, NR-AR-LBD, NR-AhR, NR-Aromatase, NR-ER, NR-ER-LBD, NR-PPAR-gamma, SR-ARE, SR-ATAD5 were used for training. Assays SR-HSE, SR-MMP, and SR-p53 were used for model evaluation.
 
-\subsection{SIDER Details}
-Indications "Hepatobiliary disorders", "Metabolism and nutrition disorders", "Product issues", "Eye disorders", "Investigations,Musculoskeletal and connective tissue disorders", "Gastrointestinal disorders", "Social circumstances", "Immune system disorders", "Reproductive system and breast disorders", "Neoplasms benign, malignant and unspecified (incl cysts and polyps)", "General disorders and administration site conditions", "Endocrine disorders", "Surgical and medical procedures", "Vascular disorders", "Blood and lymphatic system disorders", "Skin and subcutaneous tissue disorders", "Congenital, familial and genetic disorders", "Infections and infestations","Respiratory, thoracic and mediastinal disorders", "Psychiatric disorders" were used for training. Indications "Renal and urinary disorders", "Pregnancy, puerperium and perinatal conditions", "Ear and labyrinth disorders", "Cardiac disorders", "Nervous system disorders", "Injury, poisoning and procedural complications" were used for model evaluation.
+\DIFaddbegin \subsubsection{\DIFadd{Per-Assay Results}}
+\DIFadd{Results for each held-out assay are reported in Tables~\ref{tab:tox21-sr-hse},~\ref{tab:tox21-sr-mmp},~\ref{tab:tox21-sr-p53}.
+}\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{SR-HSE }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.532 \pm 0.033$}& \DIFaddFL{$0.540 \pm 0.025$ }& \DIFaddFL{$0.767 \pm 0.005$ }& \DIFaddFL{$\mathbf{0.772 \pm 0.004}$ }& \DIFaddFL{$\mathbf{0.772 \pm 0.003}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.521 \pm 0.037$ }& \DIFaddFL{$0.546 \pm 0.023$ }& \DIFaddFL{$0.733 \pm 0.098$ }& \DIFaddFL{$0.767 \pm 0.006$ }& \DIFaddFL{$\mathbf{0.780 \pm 0.003}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.525 \pm 0.033$ }& \DIFaddFL{$0.531 \pm 0.035$ }& \DIFaddFL{$0.647 \pm 0.202$ }& \DIFaddFL{$0.674 \pm 0.130$ }& \DIFaddFL{$\mathbf{0.735 \pm 0.092}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.510 \pm 0.041$ }& \DIFaddFL{$0.537 \pm 0.043$ }& \DIFaddFL{$0.680 \pm 0.167$ }& \DIFaddFL{$0.578 \pm 0.183$ }& \DIFaddFL{$\mathbf{0.721 \pm 0.053}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.507 \pm 0.039$ }& \DIFaddFL{$0.526 \pm 0.0378$ }& \DIFaddFL{$0.613 \pm 0.187$ }& \DIFaddFL{$0.586 \pm 0.174$ }& \DIFaddFL{$\mathbf{0.746 \pm 0.096}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on Tox21 assay SR-HSE. Numbers reported are means ans standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:tox21-sr-hse}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{SR-MMP }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.629 \pm 0.058$ }& \DIFaddFL{$0.648 \pm 0.029$ }& \DIFaddFL{$0.825 \pm 0.006$ }& \DIFaddFL{$0.838 \pm 0.003$ }& \DIFaddFL{$\mathbf{0.848 \pm 0.003}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.634 \pm 0.079$ }& \DIFaddFL{$0.637 \pm 0.061$ }& \DIFaddFL{$0.846 \pm 0.028$ }& \DIFaddFL{$0.846 \pm 0.003$ }& \DIFaddFL{$\mathbf{0.848 \pm 0.003}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.587 \pm 0.068$ }& \DIFaddFL{$0.541 \pm 0.093$ }& \DIFaddFL{$0.809 \pm 0.0204$ }& \DIFaddFL{$0.716 \pm 0.183$ }& \DIFaddFL{$\mathbf{0.800 \pm 0.046}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.597 \pm 0.097$ }& \DIFaddFL{$0.595 \pm 0.086$ }& \DIFaddFL{$0.687 \pm 0.210$ }& \DIFaddFL{$0.655 \pm 0.239$ }& \DIFaddFL{$\mathbf{0.808 \pm 0.012}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.560 \pm 0.0844$ }& \DIFaddFL{$0.589 \pm 0.068$ }& \DIFaddFL{$0.657 \pm 0.222$ }& \DIFaddFL{$0.622 \pm 0.213$ }& \DIFaddFL{$\mathbf{0.833 \pm 0.004}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on Tox21 assay SR-MMP. Numbers reported are means ans standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:tox21-sr-mmp}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{SR-p53 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.586 \pm 0.056$ }& \DIFaddFL{$0.653 \pm 0.021$ }& \DIFaddFL{$0.820 \pm 0.003$ }& \DIFaddFL{$0.832 \pm 0.004$ }& \DIFaddFL{$\mathbf{0.849 \pm 0.002}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.573 \pm 0.0604$ }& \DIFaddFL{$0.639 \pm 0.042$ }& \DIFaddFL{$0.823 \pm 0.004$ }& \DIFaddFL{$0.832 \pm 0.005$ }& \DIFaddFL{$\mathbf{0.843 \pm 0.003}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.551 \pm 0.067$ }& \DIFaddFL{$0.597 \pm 0.083$ }& \DIFaddFL{$0.726 \pm 0.173$ }& \DIFaddFL{$0.664 \pm 0.216$ }& \DIFaddFL{$\mathbf{0.814 \pm 0.023}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.559 \pm 0.063$ }& \DIFaddFL{$0.595 \pm 0.073$ }& \DIFaddFL{$0.745 \pm 0.156$ }& \DIFaddFL{$0.733 \pm 0.162$ }& \DIFaddFL{$\mathbf{0.812 \pm 0.014}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.535 \pm 0.056$ }& \DIFaddFL{$0.591 \pm 0.084$ }& \DIFaddFL{$0.680 \pm 0.197$ }& \DIFaddFL{$0.619 \pm 0.255$ }& \DIFaddFL{$\mathbf{0.826 \pm 0.011}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on Tox21 assay SR-p53. Numbers reported are means ans standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:tox21-sr-p53}
+\end{table}
 
-\subsection{MUV Details}
-Assays MUV-466, MUV-548, MUV-600, MUV-644, MUV-652, MUV-689, MUV-692, MUV-712, MUV-713, MUV-733, MUV-737, MUV-810 were used for training. Assays MUV-832, MUV-846, MUV-852,  MUV-858, MUV-859 were used for model evaluation.
+\DIFaddend \subsection{SIDER Details}
+\DIFaddbegin \subsubsection{\DIFadd{Assay Details}}
+\DIFaddend Indications "Hepatobiliary disorders", "Metabolism and nutrition disorders", "Product issues", "Eye disorders", "Investigations,Musculoskeletal and connective tissue disorders", "Gastrointestinal disorders", "Social circumstances", "Immune system disorders", "Reproductive system and breast disorders", "Neoplasms benign, malignant and unspecified (incl cysts and polyps)", "General disorders and administration site conditions", "Endocrine disorders", "Surgical and medical procedures", "Vascular disorders", "Blood and lymphatic system disorders", "Skin and subcutaneous tissue disorders", "Congenital, familial and genetic disorders", "Infections and infestations","Respiratory, thoracic and mediastinal disorders", "Psychiatric disorders" were used for training. Indications "Renal and urinary disorders", "Pregnancy, puerperium and perinatal conditions", "Ear and labyrinth disorders", "Cardiac disorders", "Nervous system disorders", "Injury, poisoning and procedural complications" were used for model evaluation.
 
+\DIFaddbegin \subsubsection{\DIFadd{Per-Assay Results}}
+\DIFadd{Results for each held-out assay in SIDER collection are reported in Tables 
+}\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{R.U.D }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.564 \pm 0.031$ }& \DIFaddFL{$0.496 \pm 0.035$ }& \DIFaddFL{$0.729 \pm 0.049$ }& \DIFaddFL{$0.687 \pm 0.091$ }& \DIFaddFL{$\mathbf{0.779 \pm 0.003}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.564 \pm 0.022$ }& \DIFaddFL{$0.477 \pm 0.031$ }& \DIFaddFL{$0.670 \pm 0.119$ }& \DIFaddFL{$0.645 \pm 0.122$ }& \DIFaddFL{$\mathbf{0.772 \pm 0.002}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.540 \pm 0.034$ }& \DIFaddFL{$0.449 \pm 0.025$ }& \DIFaddFL{$0.578 \pm 0.047$ }& \DIFaddFL{$\mathbf{0.585 \pm 0.066}$ }& \DIFaddFL{$\mathbf{0.585 \pm 0.014}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.538 \pm 0.045$ }& \DIFaddFL{$0.457 \pm 0.029$ }& \DIFaddFL{$0.518 \pm 0.060$ }& \DIFaddFL{$0.520 \pm 0.056$ }& \DIFaddFL{$\mathbf{0.629 \pm 0.019}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.508 \pm 0.046$ }& \DIFaddFL{$0.468 \pm 0.045$ }& \DIFaddFL{$0.503 \pm 0.063$ }& \DIFaddFL{$0.508 \pm 0.0763$ }& \DIFaddFL{$\mathbf{0.635 \pm 0.118}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on "Renal and urinary disorders". Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-rud}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{P.P.P.C }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.515 \pm 0.034$ }& \DIFaddFL{$0.552 \pm 0.028$ }& \DIFaddFL{$0.694 \pm 0.012$ }& \DIFaddFL{$0.702 \pm 0.006$ }& \DIFaddFL{$\mathbf{0.770 \pm 0.006}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.517 \pm 0.050$ }& \DIFaddFL{$0.548 \pm 0.032$ }& \DIFaddFL{$0.645 \pm 0.073$ }& \DIFaddFL{$0.686 \pm 0.042$ }& \DIFaddFL{$\mathbf{0.747 \pm 0.006}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.529 \pm 0.043$ }& \DIFaddFL{$0.521 \pm 0.041$ }& \DIFaddFL{$0.541 \pm 0.038$ }& \DIFaddFL{$0.551 \pm 0.055$ }& \DIFaddFL{$\mathbf{0.583 \pm 0.009}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.507 \pm 0.044$ }& \DIFaddFL{$0.538 \pm 0.030$ }& \DIFaddFL{$0.511 \pm 0.032$ }& \DIFaddFL{$0.514 \pm 0.031$ }& \DIFaddFL{$\mathbf{0.614 \pm 0.031}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.504 \pm 0.032$ }& \DIFaddFL{$0.527 \pm 0.027$ }& \DIFaddFL{$0.510 \pm 0.016$ }& \DIFaddFL{$0.505 \pm 0.032$ }& \DIFaddFL{$\mathbf{0.663 \pm 0.035}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on ``Pregnancy, puerperium and perinatal conditions''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-pppc}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{E.L.D }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.527 \pm 0.034$ }& \DIFaddFL{$0.533 \pm 0.026$ }& \DIFaddFL{$0.676 \pm 0.077$ }& \DIFaddFL{$0.652 \pm 0.091$ }& \DIFaddFL{$\mathbf{0.741 \pm 0.003}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.518 \pm 0.038$ }& \DIFaddFL{$0.486 \pm 0.032$ }& \DIFaddFL{$0.648 \pm 0.070$ }& \DIFaddFL{$0.636 \pm 0.095$ }& \DIFaddFL{$\mathbf{0.726 \pm 0.003}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.524 \pm 0.021$ }& \DIFaddFL{$0.456 \pm 0.018$ }& \DIFaddFL{$0.547 \pm 0.037$ }& \DIFaddFL{$0.525 \pm 0.525$ }& \DIFaddFL{$\mathbf{0.578 \pm 0.009}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.526 \pm  0.031$ }& \DIFaddFL{$0.463 \pm 0.027$ }& \DIFaddFL{$0.534 \pm 0.064$ }& \DIFaddFL{$0.521 \pm 0.051$ }& \DIFaddFL{$\mathbf{0.596 \pm 0.017}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.509 \pm 0.032$ }& \DIFaddFL{$0.519 \pm 0.035$ }& \DIFaddFL{$0.514 \pm 0.059$ }& \DIFaddFL{$0.534 \pm 0.054$ }& \DIFaddFL{$\mathbf{0.632 \pm 0.061}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on ``Ear and labyrinth disorders''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-eld}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{C.D }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.552 \pm 0.036$ }& \DIFaddFL{$0.456 \pm 0.038$ }& \DIFaddFL{$0.687 \pm 0.089$ }& \DIFaddFL{$0.677 \pm 0.063$ }& \DIFaddFL{$\mathbf{0.750 \pm 0.003}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.560 \pm 0.041$ }& \DIFaddFL{$0.444 \pm 0.027$ }& \DIFaddFL{$0.678 \pm 0.085$ }& \DIFaddFL{$0.654 \pm 0.094$ }& \DIFaddFL{$\mathbf{0.730 \pm 0.002}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.540 \pm 0.029$ }& \DIFaddFL{$0.422 \pm 0.035$ }& \DIFaddFL{$0.544 \pm 0.056$ }& \DIFaddFL{$0.550 \pm 0.068$ }& \DIFaddFL{$\mathbf{0.572 \pm 0.018}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.537 \pm 0.052$ }& \DIFaddFL{$0.447 \pm 0.035$ }& \DIFaddFL{$0.536 \pm 0.052$ }& \DIFaddFL{$0.544 \pm 0.048$ }& \DIFaddFL{$\mathbf{0.617 \pm 0.019}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.506 \pm 0.039$ }& \DIFaddFL{$0.461 \pm 0.0478$ }& \DIFaddFL{$0.543 \pm 0.068$ }& \DIFaddFL{$0.535 \pm 0.077$ }& \DIFaddFL{$\mathbf{0.659 \pm 0.060}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on ``Cardiac disorders''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-cd}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{N.S.D }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.681 \pm 0.077$ }& \DIFaddFL{$0.367 \pm 0.040$ }& \DIFaddFL{$0.809 \pm 0.013$ }& \DIFaddFL{$0.748 \pm 0.016$ }& \DIFaddFL{$\mathbf{0.833 \pm 0.007}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.638 \pm 0.102$ }& \DIFaddFL{$0.360 \pm 0.035$ }& \DIFaddFL{$0.791 \pm 0.022$ }& \DIFaddFL{$0.776 \pm 0.023$ }& \DIFaddFL{$\mathbf{0.839 \pm 0.005}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.639 \pm 0.043$ }& \DIFaddFL{$0.334 \pm 0.025$ }& \DIFaddFL{$0.631 \pm 0.115$ }& \DIFaddFL{$0.616 \pm 0.143$ }& \DIFaddFL{$\mathbf{0.665 \pm 0.021}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.604 \pm 0.091$ }& \DIFaddFL{$0.344 \pm 0.033$ }& \DIFaddFL{$0.617 \pm 0.107$ }& \DIFaddFL{$0.618 \pm 0.086$ }& \DIFaddFL{$\mathbf{0.711 \pm 0.052}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.598 \pm 0.100$ }& \DIFaddFL{$0.437 \pm 0.095$ }& \DIFaddFL{$0.515 \pm 0.121$ }& \DIFaddFL{$0.587 \pm 0.154$ }& \DIFaddFL{$\mathbf{0.778 \pm 0.006}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on ``Nervous system disorders''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-nsd}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{I.S.P.C }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.535 \pm 0.036$ }& \DIFaddFL{$0.483 \pm 0.026$ }& \DIFaddFL{$0.671 \pm 0.089$ }& \DIFaddFL{$0.656 \pm 0.073$ }& \DIFaddFL{$\mathbf{0.742 \pm 0.002}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.533 \pm 0.0302$ }& \DIFaddFL{$0.473 \pm 0.029$ }& \DIFaddFL{$0.589 \pm 0.125$ }& \DIFaddFL{$0.628 \pm 0.090$ }& \DIFaddFL{$\mathbf{0.737 \pm 0.003}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.541 \pm 0.021$ }& \DIFaddFL{$0.447 \pm 0.016$ }& \DIFaddFL{$0.537 \pm 0.045$ }& \DIFaddFL{$0.559 \pm 0.055$ }& \DIFaddFL{$\mathbf{0.583 \pm 0.014}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.529 \pm 0.028$ }& \DIFaddFL{$0.458 \pm 0.024$ }& \DIFaddFL{$0.530 \pm 0.050$ }& \DIFaddFL{$0.506 \pm 0.027$ }& \DIFaddFL{$\mathbf{0.614 \pm 0.016}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.477 \pm 0.029$ }& \DIFaddFL{$0.475 \pm 0.023$ }& \DIFaddFL{$0.501 \pm 0.044$ }& \DIFaddFL{$0.498 \pm 0.0536$ }& \DIFaddFL{$\mathbf{0.642 \pm 0.068}$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on ``Injury, poisoning and procedural complications''. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:sider-ispc}
+\end{table}
+
+\DIFaddend \subsection{MUV Details}
+\DIFaddbegin \subsubsection{\DIFadd{Assay Details}}
+\DIFaddend Assays MUV-466, MUV-548, MUV-600, MUV-644, MUV-652, MUV-689, MUV-692, MUV-712, MUV-713, MUV-733, MUV-737, MUV-810 were used for training. Assays MUV-832, MUV-846, MUV-852,  MUV-858, MUV-859 were used for model evaluation.
+\DIFaddbegin \subsubsection{\DIFadd{Per-Assay Results}}
+\DIFadd{Results for each held-out assay in MUV collection are reported in Tables ~\ref{tab:muv-832}, ~\ref{tab:muv-846}, ~\ref{tab:muv-852}, ~\ref{tab:muv-858}, ~\ref{tab:muv-859}.
+}\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{MUV-832 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$\mathbf{0.805 \pm 0.0547}$ }& \DIFaddFL{$0.568 \pm 0.0851$ }& \DIFaddFL{$0.655 \pm 0.066$ }& \DIFaddFL{$0.676 \pm 0.105$ }& \DIFaddFL{$0.706 \pm 0.046$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$\mathbf{0.730 \pm 0.063}$ }& \DIFaddFL{$0.565 \pm 0.068$ }& \DIFaddFL{$0.656 \pm 0.136$ }& \DIFaddFL{$0.711 \pm 0.116$ }& \DIFaddFL{$0.682 \pm 0.023$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.556 \pm 0.084$ }& \DIFaddFL{$0.569 \pm 0.061$ }& \DIFaddFL{$0.610 \pm 0.144$ }& \DIFaddFL{$\mathbf{0.699 \pm 0.053}$ }& \DIFaddFL{$0.640 \pm 0.124$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$\mathbf{0.598 \pm 0.067}$ }& \DIFaddFL{$0.573 \pm 0.082$ }& \DIFaddFL{$0.511 \pm 0.179$ }& \DIFaddFL{$\mathbf{0.594 \pm 0.161}$ }& \DIFaddFL{$0.555 \pm 0.184$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$\mathbf{0.559 \pm 0.095}$ }& \DIFaddFL{$\mathbf{0.552 \pm 0.084}$ }& \DIFaddFL{$0.500 \pm 0.001$ }& \DIFaddFL{$0.496 \pm 0.023$ }& \DIFaddFL{$0.481 \pm 0.025$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on MUV-832. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:muv-832}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{MUV-846 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$\mathbf{0.820 \pm 0.051}$ }& \DIFaddFL{$0.608 \pm 0.079$ }& \DIFaddFL{$0.601 \pm 0.041$ }& \DIFaddFL{$0.619 \pm 0.095$ }& \DIFaddFL{$0.693 \pm 0.028$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$\mathbf{0.788 \pm 0.061}$ }& \DIFaddFL{$0.595 \pm 0.063$ }& \DIFaddFL{$0.655 \pm 0.166$ }& \DIFaddFL{$0.641 \pm 0.116$ }& \DIFaddFL{$0.721 \pm 0.019$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$\mathbf{0.700 \pm 0.094}$ }& \DIFaddFL{$0.576 \pm 0.075$ }& \DIFaddFL{$0.602 \pm 0.118$ }& \DIFaddFL{$0.572 \pm 0.185$ }& \DIFaddFL{$0.684 \pm 0.071$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.698 \pm 0.106$ }& \DIFaddFL{$0.554 \pm 0.089$ }& \DIFaddFL{$ 0.562 \pm 0.149$ }& \DIFaddFL{$0.553 \pm 0.193$ }& \DIFaddFL{$\mathbf{0.710 \pm 0.080}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$\mathbf{0.646 \pm 0.080}$ }& \DIFaddFL{$0.588 \pm 0.077$ }& \DIFaddFL{$0.500 \pm 0.0001$ }& \DIFaddFL{$0.514 \pm 0.035$ }& \DIFaddFL{$0.528 \pm 0.036$}\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on MUV-846. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:muv-846}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{MUV-852 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$\mathbf{0.754 \pm 0.064}$ }& \DIFaddFL{$0.657 \pm 0.103$ }& \DIFaddFL{$0.678 \pm 0.047$ }& \DIFaddFL{$0.722 \pm 0.105$ }& \DIFaddFL{$0.738 \pm 0.030$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$\mathbf{0.775 \pm 0.047}$ }& \DIFaddFL{$0.670 \pm 0.068$ }& \DIFaddFL{$0.765 \pm 0.017$ }& \DIFaddFL{$0.753 \pm 0.027$ }& \DIFaddFL{$0.702 \pm 0.020$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.631 \pm 0.105$ }& \DIFaddFL{$0.627 \pm 0.156$ }& \DIFaddFL{$\mathbf{0.737 \pm 0.097}$ }& \DIFaddFL{$0.716 \pm 0.175$ }& \DIFaddFL{$\mathbf{0.733 \pm 0.036}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.632 \pm 0.106$ }& \DIFaddFL{$0.597 \pm 0.135$ }& \DIFaddFL{$0.663 \pm 0.109$ }& \DIFaddFL{$0.622 \pm 0.181$ }& \DIFaddFL{$\mathbf{0.730 \pm 0.072}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.590 \pm 0.134$ }& \DIFaddFL{$\mathbf{0.614 \pm 0.133}$ }& \DIFaddFL{$0.500 \pm 0.002$ }& \DIFaddFL{$0.510 \pm 0.029$ }& \DIFaddFL{$0.477 \pm 0.027$ }\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on MUV-852. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:muv-852}
+\end{table}
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{MUV-858 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.565 \pm 0.073$ }& \DIFaddFL{$0.552 \pm 0.083$ }& \DIFaddFL{$0.550 \pm 0.143$ }& \DIFaddFL{$0.569 \pm 0.085$ }& \DIFaddFL{$\mathbf{0.638 \pm 0.0279}$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.564 \pm 0.072$ }& \DIFaddFL{$0.554 \pm 0.069$ }& \DIFaddFL{$0.580 \pm 0.105$ }& \DIFaddFL{$0.597 \pm 0.114$ }& \DIFaddFL{$\mathbf{0.626 \pm 0.058}$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.537 \pm 0.089$ }& \DIFaddFL{$0.552 \pm 0.069$ }& \DIFaddFL{$0.553 \pm 0.101$ }& \DIFaddFL{$0.542 \pm 0.121$ }& \DIFaddFL{$\mathbf{0.573 \pm 0.078}$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.577 \pm 0.068$ }& \DIFaddFL{$0.526 \pm 0.050$ }& \DIFaddFL{$0.486 \pm 0.082$ }& \DIFaddFL{$0.517 \pm 0.128$ }& \DIFaddFL{$\mathbf{0.623 \pm 0.079}$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$\mathbf{0.526 \pm 0.070}$ }& \DIFaddFL{$\mathbf{0.527 \pm 0.060}$ }& \DIFaddFL{$0.500 \pm 0.009$ }& \DIFaddFL{$0.497 \pm 0.035$ }& \DIFaddFL{$0.519 \pm 0.033$ }\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on MUV-858. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. Model with highest mean in each row is highlighted.}}
+    \label{tab:muv-858}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{ |c|c|c|c|c|c| } 
+    \hline
+    \DIFaddFL{MUV-859 }& \DIFaddFL{RF (100 trees) }& \DIFaddFL{Graph Conv }& \DIFaddFL{Siamese }& \DIFaddFL{AttnLSTM }& \DIFaddFL{IterRefLSTM }\\ 
+    \hline
+    \DIFaddFL{10+/10- }& \DIFaddFL{$0.503 \pm 0.0717$ }& \DIFaddFL{$0.534 \pm 0.084$ }& \DIFaddFL{$0.514 \pm 0.054$ }& \DIFaddFL{$0.519 \pm 0.067$ }& \DIFaddFL{$0.488 \pm 0.043$ }\\
+    \hline
+    \DIFaddFL{5+/10- }& \DIFaddFL{$0.502 \pm 0.068$ }& \DIFaddFL{$0.510 \pm 0.067$ }& \DIFaddFL{$0.498 \pm 0.051$ }& \DIFaddFL{$0.519 \pm 0.038$ }& \DIFaddFL{$0.449 \pm 0.034$ }\\ 
+    \hline
+    \DIFaddFL{1+/10- }& \DIFaddFL{$0.530 \pm 0.053$ }& \DIFaddFL{$0.511 \pm 0.049$ }& \DIFaddFL{$0.507 \pm 0.062$ }& \DIFaddFL{$0.523 \pm 0.050$ }& \DIFaddFL{$0.478 \pm  0.020$ }\\ 
+    \hline
+    \DIFaddFL{1+/5- }& \DIFaddFL{$0.515 \pm 0.074$ }& \DIFaddFL{$0.513 \pm 0.042$ }& \DIFaddFL{$0.514 \pm 0.053$ }& \DIFaddFL{$0.500 \pm 0.033$ }& \DIFaddFL{$0.474 \pm 0.034$ }\\ 
+    \hline
+    \DIFaddFL{1+/1- }& \DIFaddFL{$0.521 \pm 0.060$ }& \DIFaddFL{$0.493 \pm 0.065$ }& \DIFaddFL{$0.500 \pm 0.001$ }& \DIFaddFL{$0.505 \pm 0.0357$ }& \DIFaddFL{$0.465 \pm 0.020$ }\\ 
+    \hline
+    \end{tabular}
+    \caption{\DIFaddFL{Accuracies of models on MUV-859. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. No models had signal so did not highlight any models.}}
+    \label{tab:muv-859}
+\end{table}
+\DIFaddend 
 
 \bibliography{paper.bib}
 
-%\bibliographystyle{iclr2017_conference.bst}
-%\bibl
+%DIF < \bibliographystyle{iclr2017_conference.bst}
+%DIF < \bibl
+\DIFaddbegin \newpage
+\section*{\DIFadd{For Table of Contents Use Only}}
+{\huge \centering \DIFadd{Low Data Drug Discovery with One-shot Learning}}
+
+{\Large \DIFadd{Han Altae-Tran*, Bharath Ramsundar*, Aneesh S. Pappu, Vijay Pande}}
+
+\DIFadd{* equal contribution
+}
+
+\begin{figure}[H]
+\includegraphics{For_Table_Of_Contents_Only.png}
+\end{figure}
+
+\DIFadd{Synopsis: We demonstrate how one-shot learning can lower the amount of data required to make meaningful predictions in drug discovery. Our architecture, the iterative refinement LSTM, permits the learning of meaningful distance metrics on small-molecule space.
+}\DIFaddend 
+
 
 \end{document}
-
-% Weird papers
-
-% https://www.researchgate.net/profile/Wojciech_Czarnecki2/publication/301857633_Learning_to_SMILES/links/57475e9808ae707fe21e3ddc.pdf
-% http://arxiv.org/abs/1603.05629
-% http://arxiv.org/pdf/1511.02136v6.pdf
-% https://arxiv.org/pdf/1511.06391v4.pdfx
