@@ -33,6 +33,9 @@
 \newcolumntype{M}{R@{${}={}$}L}
 \usepackage{multirow}
 
+\usepackage [autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
 \author{Han Altae-Tran}
 \altaffiliation{equal contribution}
 \affiliation{Department of Biological Engineering, Massachusetts Institute of Technology}
@@ -83,7 +86,7 @@ Furthermore, we take a strong open-source approach in this work. Every primitive
 Figure~\ref{fig:schematic} provides a high-level schematic of our architecture for one-shot learning in drug-discovery. The remainder of this section will expand on the subcomponents that comprise such an architecture and introduce our proposed iterative refinement LSTM module.
 
 \begin{figure}[h]
-\includegraphics[width=\textwidth]{schematic.png}
+\includegraphics[width=\textwidth]{schematic_v2.png}
 \captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
 \label{fig:schematic}
 \end{figure}
@@ -136,7 +139,7 @@ Both the $\text{BiLSTM}$ and $\text{attLSTM}$ are mechanisms for combining seque
 \subsection{Iterative refinement LSTMs}
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{resiembedding_graphic_v2.png}
-\captionof{figure}{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
+\captionof{figure}{Pictorial depiction of iterative refinement of embeddings. Inputs/outputs are 2 dimensional for illustrative purposes, with $q_1$ and $q_2$ forming the coordinate axes. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
 \label{fig:resiembed}
 \end{figure}
 
@@ -144,7 +147,7 @@ Our proposed architecture for one-shot learning preserves the context-aware desi
 
 The core idea is to use an $\text{attLSTM}$ to generate both query embedding $f$ and support embedding $g$. As noted previously, the matching networks \cite{vinyals2016matching} embedding requires the support embedding $g(\cdot \mid S)$ to define $f(\cdot \mid S)$. To resolve this issue, our architecture iteratively evolves both embeddings simultaneously.
 
-On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. Then, we iteratively update the embeddings $f$ and $g$ using an attention mechanism. This construction allows the embeddings to iteratively inform one another. The equations below specify the full update performed in each iteration.
+On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. Then, we iteratively update the embeddings $f$ and $g$ $L$ times using an attention mechanism. This construction allows the embedding of the data set to iteratively inform the embedding of the query. The quantity $L$ will be referred to as the depth of the IterRefLSTM. The equations below specify the full update performed over the $L$ iterations.
 
 %(lines 1-3 below). For each example, the expected feature map under the attention mechanism is calculated, which is then fed alongside the initial embeddings into an LSTM, which generates changes to the original embedding. The process is then repeated with the new embedding for a fixed number of steps.
 \begin{minipage}[b]{\linewidth}
@@ -152,7 +155,7 @@ On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. 
 \begin{tabular}{M M l}
         \multicolumn{4}{c}{\emph{Initialize}}\\
         \multicolumn{4}{c}{$\mathbf{r} = g^\prime(S)$\quad $\delta \mathbf{z} = \mathbf{0}$\quad $\delta z = 0$}\\       
-        \multicolumn{4}{c}{\emph{Repeat}}\\
+        \multicolumn{4}{c}{\emph{Repeat L times}}\\
         %\mathbf{e} & k(\mathbf{r}+\delta\mathbf{z},g^\prime(S)) & e & k(f^\prime(x)+\delta z,\mathbf{r}) & \mbox{(similarity measures)}\\
         e & k(f^\prime(x)+\delta z,\mathbf{r}) &\mathbf{e} & k(\mathbf{r}+\delta\mathbf{z},g^\prime(S)) & \mbox{(similarity measures)}\\
         %\mathbf{A}_{ij} &  \mathbf{e}_{ij} / \sum\nolimits_{j=1}^{m}\mathbf{e}_{ij} & 
@@ -168,11 +171,10 @@ On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. 
 \end{minipage}
 \vspace{6pt}
 
-The generated dual embeddings are used to perform one-shot learning as in the simpler models explained in previous sections.
-
+The generated dually evolved embeddings are used to perform one-shot learning as in the simpler models explained in previous sections.
 
 \subsection{Graph Convolutions}
-Earlier work \cite{duvenaud2015convolutional} defines a generalized graph convolution layer that extends standard two-dimensional convolutions upon images to arbitrary graphs. In standard convolutional networks, an image can be viewed as a grid, where each node corresponds to a pixel. The "neighbors" of a pixel in the same receptive field are passed through a dense neural layer to compute the output value for the convolution\cite{karpathy231n}. Similarly, when computing the convolution output for a specific node in an arbitrary graph, all neighbors of the node are passed through a dense layer to form the new features at this node. Both convolutions exploit the "local geometry" of the system to reduce the number of learnable parameters (see figure \ref{conv} and Appendix).
+Earlier work \cite{duvenaud2015convolutional} defines a generalized graph convolution layer that extends standard two-dimensional convolutions upon images to arbitrary graphs. In standard convolutional networks, an image can be viewed as a grid, where each node corresponds to a pixel. The ``neighbors'' of a pixel in the same receptive field are passed through a dense neural layer to compute the output value for the convolution\cite{karpathy231n}. Similarly, when computing the convolution output for a specific node in an arbitrary graph, all neighbors of the node are passed through a dense layer to form the new features at this node. Both convolutions exploit the ``local geometry'' of the system to reduce the number of learnable parameters (see figure \ref{conv} and Appendix).
 
 Standard convolutional networks have "pooling layers", which perform a max operation upon local receptive fields in an image \cite{karpathy231n}. In analogy to this pooling operation, we introduce an analogous max pool operator on a node in graph structured data that simply returns the maximum activation across the node and the node's neighbors (see figure \ref{conv} and Appendix). Such an operation is useful for increasing the size of downstream convolutional layer receptive fields without increasing the number of parameters.
 
@@ -352,6 +354,10 @@ The Graph Conv, Siamese, AttnLSTM, and IterRefLSTM models all used the same conv
     \captionof{table}{Convolutional Network Architecture}
 \end{table}
 
+\subsection{Iterative Refinement LSTM Architecture in this paper}
+
+The IterRefLSTM model and AttnLSTM model both use cosine similarity functions, $k(x,y) = \frac{x\cdot y}{ \left\|x\right\|\left\|y\right\|}$. All LSTMs used in this paper have an tanh activation, and hard sigmoid inner activation.
+
 \subsection{Molecular Features}
 
 For the convolutional models, all molecules were featurized into graphs by considering atoms as nodes and bonds as edges in an undirected graph. No distinction was made between bond types. RDKit \cite{landrum2016} was used to compute basic features of atoms including atom-type, valences, formal charges, and hybridization for each atom in a given molecule. This set  of features formed the initial set of atomic features fed into graph-convolutional layers. 
@@ -429,7 +435,7 @@ Results for each held-out assay are reported in Tables~\ref{tab:tox21-sr-hse},~\
 Indications "Hepatobiliary disorders", "Metabolism and nutrition disorders", "Product issues", "Eye disorders", "Investigations,Musculoskeletal and connective tissue disorders", "Gastrointestinal disorders", "Social circumstances", "Immune system disorders", "Reproductive system and breast disorders", "Neoplasms benign, malignant and unspecified (incl cysts and polyps)", "General disorders and administration site conditions", "Endocrine disorders", "Surgical and medical procedures", "Vascular disorders", "Blood and lymphatic system disorders", "Skin and subcutaneous tissue disorders", "Congenital, familial and genetic disorders", "Infections and infestations","Respiratory, thoracic and mediastinal disorders", "Psychiatric disorders" were used for training. Indications "Renal and urinary disorders", "Pregnancy, puerperium and perinatal conditions", "Ear and labyrinth disorders", "Cardiac disorders", "Nervous system disorders", "Injury, poisoning and procedural complications" were used for model evaluation.
 
 \subsubsection{Per-Assay Results}
-Results for each held-out assay in SIDER collection are reported in Tables 
+Results for each held-out assay in SIDER collection are reported in Tables~\ref{tab:sider-rud}, ~\ref{tab:sider-pppc}, ~\ref{tab:sider-eld}, ~\ref{tab:sider-cd}, ~\ref{tab:sider-nsd}, ~\ref{tab:sider-ispc}.
 \begin{table}[h]
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
@@ -657,7 +663,7 @@ Results for each held-out assay in MUV collection are reported in Tables ~\ref{t
     \caption{Accuracies of models on MUV-859. Numbers reported are means and standard deviations. Each model is evaluated 20 times with different support sets to compute means and standard deviations. No models had signal so did not highlight any models.}
     \label{tab:muv-859}
 \end{table}
-
+\clearpage
 \bibliography{paper.bib}
 
 \newpage

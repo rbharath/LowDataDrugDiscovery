@@ -92,7 +92,7 @@ Mathematically, we have $T$ tasks, each associated with a data set, $S=\left\{\l
 
 
 \begin{figure}
-\includegraphics[width=\textwidth]{schematic.png}
+\includegraphics[width=\textwidth]{schematic_v1.png}
 \captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
 \end{figure}
 
@@ -164,7 +164,7 @@ On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. 
 
 The generated dual embeddings are used to perform one-shot learning as in the simpler models explained in previous sections.
 \begin{figure}
-\includegraphics[width=\textwidth]{resiembedding_graphic.png}
+\includegraphics[width=\textwidth]{resiembedding_graphic_v1.png}
 \label{fig:resiembed}
 \caption{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
 \end{figure}
@@ -182,7 +182,7 @@ These graph-convolutional operations are useful for transforming small-molecules
 To facilitate the use of graph-convolutional layers in future work, we open-source our Tensorflow\cite{abadi2016tensorflow} implementation of graph-convolutions, graph-pooling, and graph-gathering layers as part of DeepChem \cite{ram2016}.
 
 \begin{figure}[h]
-\includegraphics[width=\textwidth]{graphconv_graphic.png}
+\includegraphics[width=\textwidth]{graphconv_graphic_v1.png}
 \captionof{figure}{Graphical representation of the major graph operations described in this paper. For each of the operations, the nodes being operated on are shown in blue, with unchanged nodes shown in light blue. For graph convolution and graph pool, the operation is shown for a single node, $v$, however, these operations are performed on all nodes $v$ in the graph simultaneously.}
 \label{conv}
 \end{figure}
