@@ -7,7 +7,7 @@
 %% the target journal and optionally the manuscript type.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[journal=jacsat,manuscript=article]{achemso}
-
+\setkeys{acs}{articletitle=true}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Place any additional packages needed here.  Only include packages
 %% which are essential, to avoid problems later. Do NOT use any
@@ -17,8 +17,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[version=3]{mhchem} % Formula subscripts using \ce{}
 
-%\documentclass{nature}
-%\bibliographystyle{naturemag}
+\bibliographystyle{achemso}
 
 
 \usepackage{hyperref}
@@ -81,6 +80,13 @@ Furthermore, we take a strong open-source approach in this work. Every primitive
 %Matching Networks Paper. Massively Multitask Networks for Drug %Discovery. Merck Deep Learning Papers. Graph convolutions. Google Graph %Convolutions. 
 
 \section{Methods}
+Figure~\ref{fig:schematic} provides a high-level schematic of our architecture for one-shot learning in drug-discovery. The remainder of this section will expand on the subcomponents that comprise such an architecture and introduce our proposed iterative refinement LSTM module.
+
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{schematic.png}
+\captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
+\label{fig:schematic}
+\end{figure}
 
 \subsection{Mathematical Formalism}
 
@@ -91,10 +97,6 @@ In this paper, we consider the situation in which one has multiple binary learni
 Mathematically, we have $T$ tasks, each associated with a data set, $S=\left\{\left(x_i,y_i\right)\right\}_{i=1}^{m}$, $y_i\in\left\{0,1\right\}$. We refer to the collection of available datapoints for a given task as a "support" set. The goal is to learn a function $h$, parameterized upon choice of support $S$ that predicts the probability of any query $x$ being active in the same system. Formally, $h_S(x)\,:\,\mathcal{X}\rightarrow\left[0,1\right]$, where $\mathcal{X}$ is the chemical space of small-molecules. If $h$ is specified with a neural network, fully differentiable with respect to $x$ \emph{and} $S$, then $h$ can be trained end-to-end with gradient descent.
 
 
-\begin{figure}
-\includegraphics[width=\textwidth]{schematic.png}
-\captionof{figure}{Schematic of Network Architecture for one-shot learning in drug discovery}
-\end{figure}
 
 \subsection{Simple One-shot learning}
 
@@ -108,7 +110,7 @@ The attention mechanism $a$ depends on two embedding functions $f\,:\,\mathcal{X
 \[
 a(x,x_i) = \frac{k\left(f(x),g(x_i\right))}{\sum\nolimits_{j=1}^{m} k\left(f(x),g(x_j\right))}
 \]
-Note that $a(x,x_i)$ is large when $f(x)$ is closer to $g(x_i)$ under metric $k$ compared to the other $g(x_j)$'s. This formulation of one-shot learning has been referred to as a Siamese one-shot learning method \cite{koch2015siamese}.
+Note that $a(x,x_i)$ is large when $f(x)$ is closer to $g(x_i)$ under metric $k$ compared to the other $g(x_j)$'s. This formulation of one-shot learning has been referred to as a Siamese one-shot learning method \cite{koch2015siamese}. If $f$ and $g$ are circular fingerprints\cite{rogers2010extended}, and $k$ the Tanimoto distance, notice that this formula matches standard chemoinformatic similarity methods.
 
 % Example similarity functions include the exponentiated cosine similarity, $k(z,z^\prime)=e^{\cos\left(z,z^\prime\right)}$ or the RBF kernel, $k(z,z^\prime)=e^{-\|z - z^\prime|_2^2/2}$. 
 
@@ -132,8 +134,13 @@ Both the $\text{BiLSTM}$ and $\text{attLSTM}$ are mechanisms for combining seque
 %take $g^\prime(S)$ to be $\left[g^\prime(x_1)^\top,\dots,g^\prime(x_m)^\top\right]^\top$
 
 \subsection{Iterative refinement LSTMs}
+\begin{figure}[h]
+\includegraphics[width=\textwidth]{resiembedding_graphic_v2.png}
+\captionof{figure}{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
+\label{fig:resiembed}
+\end{figure}
 
-Our proposed architecture for one-shot learning preserves the context-aware design of matching networks, but resolves the order dependence in the support-embedding $g$ and the non-symmetric treatment of the query and support noted in the previous section.
+Our proposed architecture for one-shot learning preserves the context-aware design of matching networks, but resolves the order dependence in the support-embedding $g$ and the non-symmetric treatment of the query and support noted in the previous section (Figure~\ref{fig:resiembed}).
 
 The core idea is to use an $\text{attLSTM}$ to generate both query embedding $f$ and support embedding $g$. As noted previously, the matching networks \cite{vinyals2016matching} embedding requires the support embedding $g(\cdot \mid S)$ to define $f(\cdot \mid S)$. To resolve this issue, our architecture iteratively evolves both embeddings simultaneously.
 
@@ -162,11 +169,6 @@ On the first iteration, we define $f(x) = f^\prime(x)$ and $g(S)= g^\prime(S)$. 
 \vspace{6pt}
 
 The generated dual embeddings are used to perform one-shot learning as in the simpler models explained in previous sections.
-\begin{figure}
-\includegraphics[width=\textwidth]{resiembedding_graphic.png}
-\label{fig:resiembed}
-\caption{Pictorial depiction of iterative refinement of embeddings. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
-\end{figure}
 
 
 \subsection{Graph Convolutions}
@@ -180,8 +182,8 @@ These graph-convolutional operations are useful for transforming small-molecules
 
 To facilitate the use of graph-convolutional layers in future work, we open-source our Tensorflow\cite{abadi2016tensorflow} implementation of graph-convolutions, graph-pooling, and graph-gathering layers as part of DeepChem \cite{ram2016}.
 
-\begin{figure}[h]
-\includegraphics[width=\textwidth]{graphconv_graphic.png}
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{graphconv_graphic_v2.png}
 \captionof{figure}{Graphical representation of the major graph operations described in this paper. For each of the operations, the nodes being operated on are shown in blue, with unchanged nodes shown in light blue. For graph convolution and graph pool, the operation is shown for a single node, $v$, however, these operations are performed on all nodes $v$ in the graph simultaneously.}
 \label{conv}
 \end{figure}
@@ -191,17 +193,17 @@ To facilitate the use of graph-convolutional layers in future work, we open-sour
 \subsection{Model Training}
 The objective for the iterative refinement LSTM models is similar to that for the matching networks, with the key difference that a set of training tasks are specified instead of a set of training classes. Let $\text{Tasks}$ represent the set of training tasks. Let $S$ represent a support set, and let $B$ represent a batch of queries.
 \[
-\theta = \arg\max_\theta E_{T\in\text{Tasks}} \left [ E_{S\sim T,, B\sim T} \left [ \sum_{(x,y) \in B} \log P_\theta(y\mid x, S) \right ] \right ]
+\mathcal{L} = E_{T\in\text{Tasks}} \left [ E_{S\sim T,, B\sim T} \left [ \sum_{(x,y) \in B} \log P_\theta(y\mid x, S) \right ] \right ]
 \]
 
- Training consisted of a sequence of episodes. In each episode, a task $T$ was randomly sampled, then a support $S$ and a batch of queries $B$ (non-overlapping) were sampled from the task. One gradient descent step, using ADAM \cite{kingma2014adam} was performed for each episode. We experimented with more gradient descent steps per episode, but found that sampling more supports instead improved performance.
+ Training consisted of a sequence of episodes. In each episode, a task $T$ was randomly sampled, then a support $S$ and a batch of queries $B$ (non-overlapping) were sampled from the task. One gradient descent step minimizing $\mathcal{L}$, using ADAM \cite{kingma2014adam} was performed for each episode. We experimented with more gradient descent steps per episode, but found that sampling more supports instead improved performance.
 \section{Experiments}
 \subsection{Tox21}
 The Tox21 collection consists of 12 nuclear receptor assays related to human toxicity, first gathered for the Tox21 Data Challenge \cite{tox21}. The winner of this challenge used a multitask deep-network \cite{unterthiner2015toxicity} to achieve strong predictive performance.
 
 For a low-data benchmark, we don't use the standard train/test split for this dataset. Instead, we use the first nine assays as the training set, and the last 3 assays as the test collection. For details, see appendix.
 
-Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data.
+Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data. Interestingly, the iterative refinement LSTM appears to display lower variance due to choice of support set when compared to other models, demonstrating a potential benefit of iterative refinement process. The singletask graph convolutional baseline performs much worse than all one-shot models, demonstrating that the strong performance of one-shot models likely requires architectures that explicitly promote metric learning.
 \begin{table}[h]
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
@@ -219,7 +221,7 @@ Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong 
     1+/1- & $0.535 \pm 0.056$ & $0.589 \pm 0.068$ & $0.657 \pm 0.222$ & $0.619 \pm 0.255$ & $\mathbf{0.826 \pm 0.011}$\\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for Tox21. Numbers reported are mean and standard deviation of median task amongst test-tasks. Each task is evaluated 20 times with different support set to compute mean and standard deviation. Model with highest mean in each row is highlighted.}
+    \caption{Accuracies of models on median held-out task for each model on Tox21. Numbers reported are means and standard deviations. Randomness is over the choice of support set; experiment is repeated with 20 support sets. The appendix contains results for all held-out Tox21 tasks. The result with highest mean in each row is highlighted.}
     \label{tab:tox21}
 \end{table}
 
@@ -227,13 +229,13 @@ Results are in Table~\ref{tab:tox21}. All one-shot learning methods show strong 
 
 The SIDER dataset contains information on marketed medicines and their observed adverse reactions \cite{kuhn2015sider}. We originally tested on the original 5868 side effect categories, but due to lack of signal at this level of granularity we grouped the drug-SE pairs into 27 system organ classes according to MedDRA classifications \cite{meddra}. We treat the problem of predicting whether a given compound induces a side-effect as an individual task (for 27 tasks in total). For the low-data benchmark, all models were trained on the first 21 tasks and tested on the last 6. For details see appendix.
 
-Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data.
+Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong boosts over the random-forest baseline, with the iterative refinement LSTM models showing a more robust boost in the presence of less data. As before, the iterative refinement models tend to have lower variance. The graph convolutional baseline does poorly, with performance indistinguishable from random.
 
 \begin{table}
     \centering
     \begin{tabular}{ |c|c|c|c|c|c| } 
     \hline
-    SIDER & Graph Convolution & RF (100 trees) & Siamese & AttnLSTM & IterRefLSTM \\ 
+    SIDER & RF (100 trees) & Graph Conv & Siamese & AttnLSTM & IterRefLSTM \\ 
     \hline
     10+/10- & $0.535 \pm 0.036$ & $0.483 \pm 0.026$ & $0.687 \pm 0.089$ & $0.677 \pm 0.063$ & $\mathbf{0.750 \pm 0.003}$ \\
     \hline
@@ -246,14 +248,14 @@ Results are in Table~\ref{tab:sider}. All one-shot learning methods show strong 
     1+/1- & $0.506 \pm 0.039$ & $0.468 \pm 0.045$ & $0.510 \pm 0.016$ & $0.505 \pm 0.032$ & $\mathbf{0.642 \pm 0.068}$ \\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for SIDER. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models on median held-out task for each model on SIDER. Numbers reported are means and standard deviations. Randomness is over the choice of support set; experiment is repeated with 20 support sets. The appendix contains results for all held-out SIDER tasks. The result with highest mean in each row is highlighted.}
     \label{tab:sider}
 \end{table}
 
 \subsection{MUV}
 The MUV dataset collection \cite{rohrer2009maximum} contains 17 assays designed to be challenging for standard virtual screening. The positives examples in these datasets are selected to be structurally distinct from one another. As a result, this collection is a best-case scenario for baseline machine learning (since each data point is maximally informative) and a worst-case test for the low-data methods, since structural similarity cannot be effectively exploited to predict behavior of new active compounds.
 
-Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the iterative refinement LSTM does well, it does not achieve the best performance. This result suggests that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
+Results are in Table~\ref{tab:MUV}. The random forest baseline does significantly better for MUV than for the other two datsets we tested. Though the iterative refinement LSTM does well, it does not achieve the best performance; however, as before, the iterative refinement models do tend to have lower variance than other methods. The graph-convolutional baseline struggles on MUV as well, suggesting that part of the difficulty of MUV may be due to current limitations of graph convolutions. That said, these results suggest that one-shot learning methods may have some difficulties generalizing to new molecular scaffolds.
 
 \begin{table}
     \centering
@@ -272,7 +274,7 @@ Results are in Table~\ref{tab:MUV}. The random forest baseline does significantl
     1+/1- & $\mathbf{0.559 \pm 0.095}$ & $0.552 \pm 0.084$ & $0.500 \pm 0.0001$ & $0.505 \pm 0.036$ & $0.481 \pm 0.025$ \\ 
     \hline
     \end{tabular}
-    \caption{Accuracies of models on held-out tasks for MUV. Numbers reported are median on test-tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models on median held-out task for each model on MUV. Numbers reported are means and standard deviations. Randomness is over the choice of support set; experiment is repeated with 20 support sets. The appendix contains results for all held-out MUV tasks. The result with highest mean in each row is highlighted.}
     \label{tab:MUV}
 \end{table}
 
@@ -280,7 +282,7 @@ Results are in Table~\ref{tab:MUV}. The random forest baseline does significantl
 
 The experiments thus far have tested the ability of one-shot learning methods to generalize from training tasks to closely related testing tasks. To test whether one-shot learning methods are capable of broader generalization, we trained models on the Tox21 dataset collection and evaluated predictive accuracy on the SIDER collection. Note that these collections are broadly distinct, with Tox21 measuring results in nuclear receptor assays, and SIDER measuring adverse reactions from real patients.
 
-Results are in Table~\ref{tab:transfer}. None of our models achieve any predictive power on this task (the random forest numbers are copied over from Table~\ref{tab:sider} for comparison), providing evidence that the one-shot models have limited generalization powers to unrelated systems.
+Results are in Table~\ref{tab:transfer}. None of our models achieve any predictive power on this task, providing evidence that the one-shot models have limited generalization powers to unrelated systems.
 
 \begin{table}
     \centering
@@ -291,7 +293,7 @@ Results are in Table~\ref{tab:transfer}. None of our models achieve any predicti
     10+/10- & $0.511 \pm 0.031$ & $0.509 \pm 0.014$ & $0.509 \pm 0.012$ \\
     \hline
     \end{tabular}
-    \caption{Accuracies of models trained on Tox21 and evaluated on all SIDER. Numbers reported are median on SIDER tasks. Numbers for each task are averaged for 20 random choices of support sets}
+    \caption{Accuracies of models trained on Tox21 on median SIDER task for each model on SIDER. Note that models are evaluated on all SIDER tasks and not just the held-out SIDER tasks from previous section. Numbers reported are means and standard deviations. Randomness is over the choice of support set; experiment is repeated with 20 support sets. The result with highest mean in each row is highlighted.}
     \label{tab:transfer}
 \end{table}
 
@@ -303,11 +305,11 @@ At the same time, it is clear that there are strong limitations to the generaliz
 
 In order to facilitate the wide adoption of these models, we've open-sourced all graph-convolutional primitives in addition to the iterative refinement LSTM models themselves as part of the DeepChem library. All scripts used to perform experiments listed in this paper have been made public as well.
 
-The use of one-shot learning in chemistry can only be validated experimentally, but we hope that our results will the impetus for such work.
+The use of one-shot learning in chemistry can only be validated experimentally, but we hope that our results will provide the impetus for such work.
 
 \subsubsection*{Acknowledgments}
 
-We would like to thank the Stanford Computing Resources for providing us with access to the Sherlock and Xstream GPU nodes. Thanks to David Duvenaud for useful preliminary discussions.
+We would like to thank the Stanford Computing Resources for providing us with access to the Sherlock and Xstream GPU clusters. Thanks to David Duvenaud for useful preliminary discussions.
 
 B.R. was supported by the Fannie and John Hertz Foundation.
 
@@ -336,7 +338,7 @@ where $\sigma(\cdot)$ is a nonlinearity, such as ReLU or tanh.
 
 \subsection{Convolutional Architecture in this Paper}
 
-The Siamese, AttnLSTM, and IterRefLSTM models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
+The Graph Conv, Siamese, AttnLSTM, and IterRefLSTM models all used the same convolutional architecture, shown in the table below, with the input starting at the left, sequentially feeding into the layers to the right.
 
 \begin{table}
     \begin{tabular}{ r | c | c | c | c | c | c | c | c |}
@@ -658,14 +660,19 @@ Results for each held-out assay in MUV collection are reported in Tables ~\ref{t
 
 \bibliography{paper.bib}
 
-%\bibliographystyle{iclr2017_conference.bst}
-%\bibl
+\newpage
+\section*{For Table of Contents Use Only}
+{\huge \centering Low Data Drug Discovery with One-shot Learning}
+
+{\Large Han Altae-Tran*, Bharath Ramsundar*, Aneesh S. Pappu, Vijay Pande}
+
+* equal contribution
+
+\begin{figure}[H]
+\includegraphics{For_Table_Of_Contents_Only.png}
+\end{figure}
+
+Synopsis: We demonstrate how one-shot learning can lower the amount of data required to make meaningful predictions in drug discovery. Our architecture, the iterative refinement LSTM, permits the learning of meaningful distance metrics on small-molecule space.
+
 
 \end{document}
-
-% Weird papers
-
-% https://www.researchgate.net/profile/Wojciech_Czarnecki2/publication/301857633_Learning_to_SMILES/links/57475e9808ae707fe21e3ddc.pdf
-% http://arxiv.org/abs/1603.05629
-% http://arxiv.org/pdf/1511.02136v6.pdf
-% https://arxiv.org/pdf/1511.06391v4.pdfx
