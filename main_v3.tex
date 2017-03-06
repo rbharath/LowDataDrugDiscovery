@@ -139,7 +139,7 @@ Internally, the $\text{attLSTM}$ contains $K$ layers of processing which allow f
 
 %take $g^\prime(S)$ to be $\left[g^\prime(x_1)^\top,\dots,g^\prime(x_m)^\top\right]^\top$
 
-\subsection{Iterative refinement LSTMs}
+\subsubsection{Iterative refinement LSTMs}
 \begin{figure}[h]
 \includegraphics[width=\textwidth]{resiembedding_graphic_v2.png}
 \captionof{figure}{Pictorial depiction of iterative refinement of embeddings. Inputs/outputs are 2 dimensional for illustrative purposes, with $q_1$ and $q_2$ forming the coordinate axes. Red and blue points depict positive/negative samples (for illustrative purposes only). The original embedding $g'(S)$ is shown as squares. The expected features, $\mathbf{r}$ are shown as empty circles.}
@@ -179,7 +179,7 @@ The generated dually evolved embeddings are used to perform one-shot learning as
 \subsection{Graph Convolutions}
 We briefly review prior work on molecular graph convolution, then introduce a pair of new graph convolutional layers that we find useful for architectural design.
 
-\subsubsection{Previous Work on Molecular Graph Convolution}
+\subsubsection{Review of prior work on molecular graph convolutions}
 Earlier work \cite{duvenaud2015convolutional} defines a generalized graph convolution layer that extends standard two-dimensional convolutions upon images to arbitrary graphs. In standard convolutional networks, an image can be viewed as a grid, where each node corresponds to a pixel. The ``neighbors'' of a pixel in the same receptive field are passed through a dense neural layer to compute the output value for the convolution\cite{karpathy231n}. Similarly, when computing the convolution output for a specific node in an arbitrary graph, all neighbors of the node are passed through a dense layer to form the new features at this node. Both convolutions exploit the ``local geometry'' of the system to reduce the number of learnable parameters (see figure \ref{conv} and Appendix). Since molecules can be viewed as undirected graphs, with atoms as nodes and bonds as edges, graph convolutional architectures allow for the learning of complex functions of molecular structure.
 
 Graph-convolutional networks are useful for transforming small-molecules into continuous vectorial representations. Such representations have emerged as a powerful way to manipulate small molecules within deep networks \cite{gomez2016automatic}. Earlier work on one-shot learning uses convolutional neural networks to encode images into continuous vectors which are then used to make one-shot predictions. By analogy, we use graph-convolutional neural networks to encode small-molecules in a form suitable for one-shot prediction.
